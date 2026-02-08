@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Toolbar } from '@/components/Toolbar';
 import { BlocklyEditor } from '@/components/BlocklyEditor';
+import { P5Canvas } from '@/components/P5Canvas';
 import { CodePanel } from '@/components/CodePanel';
 import { StatusBar } from '@/components/StatusBar';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -9,7 +10,7 @@ import type { LiveScratchIR, Track } from '@/engine/types';
 import './App.css';
 
 function App() {
-  const { isPlaying, bpm, play, stop, setBPM, applyIR } = useAudioEngine();
+  const { isPlaying, bpm, play, stop, setBPM, applyIR, getAudioData } = useAudioEngine();
   const [ir, setIR] = useState<LiveScratchIR>({ bpm: 120, tracks: [] });
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [showCodePanel, setShowCodePanel] = useState(false);
@@ -76,6 +77,11 @@ function App() {
         onIRChange={handleIRChange}
         onBlockSelect={setSelectedBlockId}
         resizeTrigger={showCodePanel}
+      />
+      <P5Canvas
+        visual={ir.visual}
+        getAudioData={getAudioData}
+        isPlaying={isPlaying}
       />
       {showCodePanel && (
         <CodePanel track={selectedTrack} onCustomCode={handleCustomCode} />
