@@ -168,3 +168,65 @@
   max-width: 500px;
   text-align: center;
 }
+
+/* Dialog */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 320px;
+  max-width: 420px;
+}
+
+.dialog h3 {
+  margin: 0 0 8px;
+  color: var(--text-primary);
+}
+
+.dialog-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.85em;
+  margin: 0 0 20px;
+}
+
+.dialog-actions-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.auth-btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9em;
+  cursor: pointer;
+  text-align: center;
+}
+
+.auth-btn:hover {
+  background: var(--border);
+}
+
+.dialog-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.85em;
+  padding: 4px 0;
+}
