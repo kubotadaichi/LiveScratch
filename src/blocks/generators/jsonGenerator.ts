@@ -1,5 +1,15 @@
 import * as Blockly from 'blockly';
-import type { LiveScratchIR, Track, Source, Pattern, Effect } from '@/engine/types';
+import type {
+  LiveScratchIR,
+  Track,
+  Source,
+  Pattern,
+  Effect,
+  VisualDefinition,
+  VisualShape,
+  VisualConfig,
+  Modulation,
+} from '@/engine/types';
 
 function getSource(block: Blockly.Block): Source | null {
   const sourceBlock = block.getInputTargetBlock('SOURCE');
@@ -102,5 +112,109 @@ export function workspaceToIR(workspace: Blockly.Workspace): LiveScratchIR {
     }
   }
 
-  return { bpm, tracks };
+  return { bpm, tracks, visual: getVisualDefinition(workspace) };
+}
+
+function getModulations(block: Blockly.Block): Modulation[] {
+  const mods: Modulation[] = [];
+  let modBlock = block.getInputTargetBlock('MODULATIONS');
+  while (modBlock) {
+    if (modBlock.type === 'mod_freq') {
+      mods.push({
+        source: 'freq',
+        property: modBlock.getFieldValue('PROPERTY'),
+        scale: modBlock.getFieldValue('SCALE'),
+        offset: 0,
+        freqRange: [
+          modBlock.getFieldValue('RANGE_LO'),
+          modBlock.getFieldValue('RANGE_HI'),
+        ],
+      });
+    } else if (modBlock.type === 'mod_waveform') {
+      mods.push({
+        source: 'waveform',
+        property: modBlock.getFieldValue('PROPERTY'),
+        scale: modBlock.getFieldValue('SCALE'),
+        offset: 0,
+      });
+    } else if (modBlock.type === 'mod_beat') {
+      mods.push({
+        source: 'beat',
+        property: modBlock.getFieldValue('PROPERTY'),
+        scale: modBlock.getFieldValue('SCALE'),
+        offset: 0,
+      });
+    } else if (modBlock.type === 'mod_time') {
+      mods.push({
+        source: 'time',
+        property: modBlock.getFieldValue('PROPERTY'),
+        scale: modBlock.getFieldValue('SCALE'),
+        offset: 0,
+      });
+    }
+    modBlock = modBlock.getInputTargetBlock('NEXT_MOD');
+  }
+  return mods;
+}
+
+function getVisualDefinition(
+  workspace: Blockly.Workspace
+): VisualDefinition | undefined {
+  const topBlocks = workspace.getTopBlocks(true);
+  for (const topBlock of topBlocks) {
+    if (topBlock.type === 'canvas_config' && topBlock.isEnabled()) {
+      const config: VisualConfig = {
+        backgroundColor: topBlock.getFieldValue('BG_COLOR'),
+        backgroundFade: topBlock.getFieldValue('FADE'),
+      };
+      const shapes: VisualShape[] = [];
+      let block = topBlock.getInputTargetBlock('SHAPES');
+      while (block) {
+        if (!block.isEnabled()) {
+          block = block.getNextBlock();
+          continue;
+        }
+        if (block.type === 'visual_circle' || block.type === 'visual_rect') {
+          shapes.push({
+            id: block.id,
+            type: block.type === 'visual_circle' ? 'circle' : 'rect',
+            x: block.getFieldValue('X'),
+            y: block.getFieldValue('Y'),
+            size: block.getFieldValue('SIZE'),
+            fillColor: block.getFieldValue('FILL'),
+            strokeColor: block.getFieldValue('STROKE'),
+            strokeWeight: block.getFieldValue('STROKE_WEIGHT'),
+            modulations: getModulations(block),
+          });
+        } else if (block.type === 'visual_waveform') {
+          shapes.push({
+            id: block.id,
+            type: 'waveform',
+            x: 0,
+            y: 0,
+            size: 0,
+            fillColor: '#000000',
+            strokeColor: block.getFieldValue('COLOR'),
+            strokeWeight: block.getFieldValue('STROKE_WEIGHT'),
+            modulations: [],
+          });
+        } else if (block.type === 'visual_spectrum') {
+          shapes.push({
+            id: block.id,
+            type: 'spectrum',
+            x: 0,
+            y: 0,
+            size: 0,
+            fillColor: '#000000',
+            strokeColor: '#000000',
+            strokeWeight: 0,
+            modulations: [],
+          });
+        }
+        block = block.getNextBlock();
+      }
+      return { config, shapes };
+    }
+  }
+  return undefined;
 }
