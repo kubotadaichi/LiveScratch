@@ -115,6 +115,20 @@ export function BlocklyEditor({ onIRChange, onBlockSelect, resizeTrigger }: Bloc
     kickTrack.nextConnection!.connect(hihatTrack.previousConnection!);
     loopBlock.getInput('TRACKS')!.connection!.connect(bpmBlock.previousConnection!);
 
+    // Visual template: canvas with spectrum
+    const canvasBlock = workspace.newBlock('canvas_config');
+    canvasBlock.setFieldValue('#000000', 'BG_COLOR');
+    canvasBlock.setFieldValue(0, 'FADE');
+    canvasBlock.initSvg();
+    canvasBlock.render();
+    canvasBlock.moveBy(50, 350);
+
+    const spectrumBlock = workspace.newBlock('visual_spectrum');
+    spectrumBlock.initSvg();
+    spectrumBlock.render();
+
+    canvasBlock.getInput('SHAPES')!.connection!.connect(spectrumBlock.previousConnection!);
+
     workspace.addChangeListener((e: Blockly.Events.Abstract) => {
       if (e.type === Blockly.Events.BLOCK_CHANGE ||
           e.type === Blockly.Events.BLOCK_CREATE ||

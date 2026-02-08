@@ -1,4 +1,5 @@
 import * as Blockly from 'blockly';
+import { FieldColour } from '@blockly/field-colour';
 
 export function registerVisualBlocks(): void {
   // Canvas config block
@@ -7,7 +8,7 @@ export function registerVisualBlocks(): void {
       this.appendStatementInput('SHAPES').appendField('canvas');
       this.appendDummyInput()
         .appendField('bg')
-        .appendField(new Blockly.FieldColour('#000000'), 'BG_COLOR')
+        .appendField(new FieldColour('#000000'), 'BG_COLOR')
         .appendField('fade')
         .appendField(new Blockly.FieldNumber(0, 0, 1, 0.05), 'FADE');
       this.setColour(30);
@@ -28,9 +29,9 @@ export function registerVisualBlocks(): void {
         .appendField(new Blockly.FieldNumber(100, 1, 1000, 1), 'SIZE');
       this.appendDummyInput()
         .appendField('fill')
-        .appendField(new Blockly.FieldColour('#ff00ff'), 'FILL')
+        .appendField(new FieldColour('#ff00ff'), 'FILL')
         .appendField('stroke')
-        .appendField(new Blockly.FieldColour('#ffffff'), 'STROKE')
+        .appendField(new FieldColour('#ffffff'), 'STROKE')
         .appendField('weight')
         .appendField(new Blockly.FieldNumber(0, 0, 20, 1), 'STROKE_WEIGHT');
       this.appendValueInput('MODULATIONS')
@@ -56,9 +57,9 @@ export function registerVisualBlocks(): void {
         .appendField(new Blockly.FieldNumber(100, 1, 1000, 1), 'SIZE');
       this.appendDummyInput()
         .appendField('fill')
-        .appendField(new Blockly.FieldColour('#00ffff'), 'FILL')
+        .appendField(new FieldColour('#00ffff'), 'FILL')
         .appendField('stroke')
-        .appendField(new Blockly.FieldColour('#ffffff'), 'STROKE')
+        .appendField(new FieldColour('#ffffff'), 'STROKE')
         .appendField('weight')
         .appendField(new Blockly.FieldNumber(0, 0, 20, 1), 'STROKE_WEIGHT');
       this.appendValueInput('MODULATIONS')
@@ -77,7 +78,7 @@ export function registerVisualBlocks(): void {
       this.appendDummyInput()
         .appendField('waveform')
         .appendField('color')
-        .appendField(new Blockly.FieldColour('#00ff00'), 'COLOR')
+        .appendField(new FieldColour('#00ff00'), 'COLOR')
         .appendField('weight')
         .appendField(new Blockly.FieldNumber(2, 1, 10, 1), 'STROKE_WEIGHT');
       this.setPreviousStatement(true, null);
