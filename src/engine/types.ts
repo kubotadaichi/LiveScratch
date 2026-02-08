@@ -60,7 +60,44 @@ export interface Track {
   customCode?: string;
 }
 
+// === Visual Types ===
+
+export type ShapeType = 'circle' | 'rect' | 'waveform' | 'spectrum';
+export type ModulationSource = 'freq' | 'waveform' | 'beat' | 'time';
+
+export interface Modulation {
+  source: ModulationSource;
+  property: string;       // e.g. 'size', 'hue', 'x', 'y'
+  scale: number;
+  offset: number;
+  freqRange?: [number, number]; // for 'freq' source: bin range
+}
+
+export interface VisualShape {
+  id: string;
+  type: ShapeType;
+  x: number;
+  y: number;
+  size: number;
+  fillColor: string;
+  strokeColor: string;
+  strokeWeight: number;
+  modulations: Modulation[];
+  customCode?: string;
+}
+
+export interface VisualConfig {
+  backgroundColor: string;
+  backgroundFade: number;  // 0-1, 0=full clear, 1=no clear (trail)
+}
+
+export interface VisualDefinition {
+  config: VisualConfig;
+  shapes: VisualShape[];
+}
+
 export interface LiveScratchIR {
   bpm: number;
   tracks: Track[];
+  visual?: VisualDefinition;
 }
