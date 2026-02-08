@@ -40,5 +40,21 @@ export const toolbox = {
         { kind: 'block', type: 'bpm_block' },
       ],
     },
+    {
+      kind: 'category',
+      name: 'Visual',
+      colour: '30',
+      contents: [
+        { kind: 'block', type: 'canvas_config' },
+        { kind: 'block', type: 'visual_circle' },
+        { kind: 'block', type: 'visual_rect' },
+        { kind: 'block', type: 'visual_waveform' },
+        { kind: 'block', type: 'visual_spectrum' },
+        { kind: 'block', type: 'mod_freq' },
+        { kind: 'block', type: 'mod_waveform' },
+        { kind: 'block', type: 'mod_beat' },
+        { kind: 'block', type: 'mod_time' },
+      ],
+    },
   ],
 };
