@@ -42,5 +42,9 @@ export function useAudioEngine() {
     [getEngine]
   );
 
-  return { isPlaying, bpm, play, stop, setBPM, applyIR };
+  const getAudioData = useCallback(() => {
+    return engineRef.current?.getAudioData() ?? null;
+  }, []);
+
+  return { isPlaying, bpm, play, stop, setBPM, applyIR, getAudioData };
 }

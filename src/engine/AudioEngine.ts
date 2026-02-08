@@ -2,14 +2,19 @@ import * as Tone from 'tone';
 import type { LiveScratchIR } from './types';
 import { TrackManager } from './TrackManager';
 import { diffIR } from '@/utils/diffIR';
+import { AudioAnalyser, type AudioData } from './AudioAnalyser';
 
 export class AudioEngine {
   private tracks: Map<string, TrackManager> = new Map();
   private currentIR: LiveScratchIR | null = null;
   private isPlaying = false;
+  private analyser: AudioAnalyser | null = null;
 
   async start(): Promise<void> {
     await Tone.start();
+    if (!this.analyser) {
+      this.analyser = new AudioAnalyser();
+    }
     Tone.getTransport().start();
     this.isPlaying = true;
   }
@@ -59,8 +64,14 @@ export class AudioEngine {
     this.currentIR = ir;
   }
 
+  getAudioData(): AudioData | null {
+    return this.analyser?.getData() ?? null;
+  }
+
   dispose(): void {
     this.stop();
+    this.analyser?.dispose();
+    this.analyser = null;
     this.tracks.forEach(t => t.dispose());
     this.tracks.clear();
     this.currentIR = null;
