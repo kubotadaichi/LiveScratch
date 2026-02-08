@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import type { User } from '@supabase/supabase-js';
 
 interface ToolbarProps {
   isPlaying: boolean;
@@ -8,6 +9,15 @@ interface ToolbarProps {
   onBPMChange: (bpm: number) => void;
   showCodePanel: boolean;
   onToggleCodePanel: () => void;
+  // Project & Auth
+  user: User | null;
+  projectTitle: string;
+  saving: boolean;
+  onSave: () => void;
+  onOpen: () => void;
+  onShare: () => void;
+  onAuth: () => void;
+  onSignOut: () => void;
 }
 
 export function Toolbar({
@@ -18,6 +28,14 @@ export function Toolbar({
   onBPMChange,
   showCodePanel,
   onToggleCodePanel,
+  user,
+  projectTitle,
+  saving,
+  onSave,
+  onOpen,
+  onShare,
+  onAuth,
+  onSignOut,
 }: ToolbarProps) {
   const handleBPMChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,6 +49,7 @@ export function Toolbar({
     <div className="toolbar">
       <div className="toolbar-left">
         <span className="toolbar-title">Live Scratch</span>
+        <span className="toolbar-project-title">{projectTitle}</span>
       </div>
       <div className="toolbar-center">
         <button
@@ -51,9 +70,32 @@ export function Toolbar({
         </label>
       </div>
       <div className="toolbar-right">
-        <button onClick={onToggleCodePanel}>
-          {showCodePanel ? 'Hide Code' : 'Show Code'}
-        </button>
+        {user ? (
+          <>
+            <button onClick={onSave} disabled={saving}>
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+            <button onClick={onOpen}>Open</button>
+            <button onClick={onShare}>Share</button>
+            <button onClick={onToggleCodePanel}>
+              {showCodePanel ? 'Hide Code' : 'Show Code'}
+            </button>
+            <button className="auth-avatar" onClick={onSignOut} title="Sign out">
+              {user.user_metadata?.avatar_url ? (
+                <img src={user.user_metadata.avatar_url} alt="" />
+              ) : (
+                user.email?.charAt(0).toUpperCase()
+              )}
+            </button>
+          </>
+        ) : (
+          <>
+            <button onClick={onAuth}>Sign in</button>
+            <button onClick={onToggleCodePanel}>
+              {showCodePanel ? 'Hide Code' : 'Show Code'}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
