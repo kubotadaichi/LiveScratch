@@ -1,0 +1,166 @@
+import { useEffect, useRef, useCallback } from 'react';
+import * as Blockly from 'blockly';
+import { registerAllBlocks } from '@/blocks';
+import { toolbox } from '@/blocks/toolbox';
+import { workspaceToIR } from '@/blocks/generators/jsonGenerator';
+import type { LiveScratchIR } from '@/engine/types';
+
+const darkTheme = Blockly.Theme.defineTheme('live-scratch-dark', {
+  base: Blockly.Themes.Classic,
+  componentStyles: {
+    workspaceBackgroundColour: '#1a1a2e',
+    toolboxBackgroundColour: '#16213e',
+    toolboxForegroundColour: '#e0e0e0',
+    flyoutBackgroundColour: '#0f3460',
+    flyoutForegroundColour: '#e0e0e0',
+    flyoutOpacity: 0.9,
+    scrollbarColour: '#4a4a6a',
+    scrollbarOpacity: 0.6,
+    insertionMarkerColour: '#e94560',
+    insertionMarkerOpacity: 0.4,
+  },
+});
+
+interface BlocklyEditorProps {
+  onIRChange: (ir: LiveScratchIR) => void;
+  onBlockSelect?: (blockId: string | null) => void;
+  resizeTrigger?: unknown;
+}
+
+export function BlocklyEditor({ onIRChange, onBlockSelect, resizeTrigger }: BlocklyEditorProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
+
+  const handleWorkspaceChange = useCallback(() => {
+    if (!workspaceRef.current) return;
+    const ir = workspaceToIR(workspaceRef.current);
+    onIRChange(ir);
+  }, [onIRChange]);
+
+  useEffect(() => {
+    if (!containerRef.current || workspaceRef.current) return;
+
+    registerAllBlocks();
+
+    const workspace = Blockly.inject(containerRef.current, {
+      toolbox,
+      grid: {
+        spacing: 20,
+        length: 3,
+        colour: '#2a2a4a',
+        snap: true,
+      },
+      zoom: {
+        controls: true,
+        wheel: true,
+        startScale: 1.0,
+        maxScale: 3,
+        minScale: 0.3,
+        scaleSpeed: 1.2,
+      },
+      trashcan: true,
+      theme: darkTheme,
+      renderer: 'zelos',
+    });
+
+    workspaceRef.current = workspace;
+
+    // Initial template: loop > bpm + kick track + hihat track
+    const loopBlock = workspace.newBlock('loop_block');
+    loopBlock.initSvg();
+    loopBlock.render();
+    loopBlock.moveBy(50, 50);
+
+    const bpmBlock = workspace.newBlock('bpm_block');
+    bpmBlock.setFieldValue(120, 'BPM');
+    bpmBlock.initSvg();
+    bpmBlock.render();
+
+    const kickTrack = workspace.newBlock('track_block');
+    kickTrack.setFieldValue('kick', 'TRACK_ID');
+    kickTrack.initSvg();
+    kickTrack.render();
+
+    const kickSource = workspace.newBlock('sampler_source');
+    kickSource.setFieldValue('kick', 'SAMPLE');
+    kickSource.initSvg();
+    kickSource.render();
+
+    const kickPattern = workspace.newBlock('beat_pattern');
+    kickPattern.setFieldValue('x---x---', 'STEPS');
+    kickPattern.initSvg();
+    kickPattern.render();
+
+    const hihatTrack = workspace.newBlock('track_block');
+    hihatTrack.setFieldValue('hihat', 'TRACK_ID');
+    hihatTrack.initSvg();
+    hihatTrack.render();
+
+    const hihatSource = workspace.newBlock('sampler_source');
+    hihatSource.setFieldValue('hihat', 'SAMPLE');
+    hihatSource.initSvg();
+    hihatSource.render();
+
+    const hihatPattern = workspace.newBlock('beat_pattern');
+    hihatPattern.setFieldValue('--x---x-', 'STEPS');
+    hihatPattern.initSvg();
+    hihatPattern.render();
+
+    // Connect blocks
+    kickTrack.getInput('SOURCE')!.connection!.connect(kickSource.outputConnection!);
+    kickTrack.getInput('PATTERN')!.connection!.connect(kickPattern.outputConnection!);
+    hihatTrack.getInput('SOURCE')!.connection!.connect(hihatSource.outputConnection!);
+    hihatTrack.getInput('PATTERN')!.connection!.connect(hihatPattern.outputConnection!);
+    bpmBlock.nextConnection!.connect(kickTrack.previousConnection!);
+    kickTrack.nextConnection!.connect(hihatTrack.previousConnection!);
+    loopBlock.getInput('TRACKS')!.connection!.connect(bpmBlock.previousConnection!);
+
+    workspace.addChangeListener((e: Blockly.Events.Abstract) => {
+      if (e.type === Blockly.Events.BLOCK_CHANGE ||
+          e.type === Blockly.Events.BLOCK_CREATE ||
+          e.type === Blockly.Events.BLOCK_DELETE ||
+          e.type === Blockly.Events.BLOCK_MOVE) {
+        handleWorkspaceChange();
+      }
+      if (e.type === Blockly.Events.SELECTED) {
+        const selectEvent = e as Blockly.Events.Selected;
+        const blockId = selectEvent.newElementId;
+        if (blockId) {
+          const block = workspace.getBlockById(blockId);
+          if (block?.type === 'track_block') {
+            onBlockSelect?.(block.getFieldValue('TRACK_ID'));
+          } else {
+            onBlockSelect?.(null);
+          }
+        } else {
+          onBlockSelect?.(null);
+        }
+      }
+    });
+
+    // Initial IR generation
+    handleWorkspaceChange();
+
+    return () => {
+      workspace.dispose();
+      workspaceRef.current = null;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handle resize (window + layout changes like code panel toggle)
+  useEffect(() => {
+    const handleResize = () => {
+      if (workspaceRef.current) {
+        Blockly.svgResize(workspaceRef.current);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    const timer = setTimeout(handleResize, 50);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
+    };
+  }, [resizeTrigger]);
+
+  return <div ref={containerRef} className="blockly-editor" />;
+}

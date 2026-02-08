@@ -1,0 +1,106 @@
+import * as Blockly from 'blockly';
+import type { LiveScratchIR, Track, Source, Pattern, Effect } from '@/engine/types';
+
+function getSource(block: Blockly.Block): Source | null {
+  const sourceBlock = block.getInputTargetBlock('SOURCE');
+  if (!sourceBlock) return null;
+
+  if (sourceBlock.type === 'synth_source') {
+    return {
+      type: 'synth',
+      waveform: sourceBlock.getFieldValue('WAVEFORM'),
+    };
+  }
+  if (sourceBlock.type === 'sampler_source') {
+    return {
+      type: 'sampler',
+      sample: sourceBlock.getFieldValue('SAMPLE'),
+    };
+  }
+  return null;
+}
+
+function getPattern(block: Blockly.Block): Pattern | null {
+  const patternBlock = block.getInputTargetBlock('PATTERN');
+  if (!patternBlock) return null;
+
+  if (patternBlock.type === 'beat_pattern') {
+    return { type: 'beat', steps: patternBlock.getFieldValue('STEPS') };
+  }
+  if (patternBlock.type === 'note_pattern') {
+    return { type: 'note', pitch: patternBlock.getFieldValue('PITCH') };
+  }
+  if (patternBlock.type === 'sequence_pattern') {
+    const pitchesStr = patternBlock.getFieldValue('PITCHES') as string;
+    return { type: 'sequence', pitches: pitchesStr.split(',').map(s => s.trim()) };
+  }
+  return null;
+}
+
+function getEffects(block: Blockly.Block): Effect[] {
+  const effects: Effect[] = [];
+  let effectBlock = block.getInputTargetBlock('EFFECTS');
+
+  while (effectBlock) {
+    if (effectBlock.type === 'reverb_effect') {
+      effects.push({
+        type: 'reverb',
+        decay: effectBlock.getFieldValue('DECAY'),
+        wet: effectBlock.getFieldValue('WET'),
+      });
+    } else if (effectBlock.type === 'delay_effect') {
+      effects.push({
+        type: 'delay',
+        time: effectBlock.getFieldValue('TIME'),
+        feedback: effectBlock.getFieldValue('FEEDBACK'),
+        wet: effectBlock.getFieldValue('WET'),
+      });
+    } else if (effectBlock.type === 'filter_effect') {
+      effects.push({
+        type: 'filter',
+        frequency: effectBlock.getFieldValue('FREQUENCY'),
+        filterType: effectBlock.getFieldValue('FILTER_TYPE'),
+        wet: effectBlock.getFieldValue('WET'),
+      });
+    }
+    effectBlock = effectBlock.getInputTargetBlock('NEXT_EFFECT');
+  }
+
+  return effects;
+}
+
+export function workspaceToIR(workspace: Blockly.Workspace): LiveScratchIR {
+  let bpm = 120;
+  const tracks: Track[] = [];
+
+  const topBlocks = workspace.getTopBlocks(true);
+
+  for (const topBlock of topBlocks) {
+    if (topBlock.type === 'loop_block' && topBlock.isEnabled()) {
+      let block = topBlock.getInputTargetBlock('TRACKS');
+      while (block) {
+        if (!block.isEnabled()) {
+          block = block.getNextBlock();
+          continue;
+        }
+        if (block.type === 'bpm_block') {
+          bpm = block.getFieldValue('BPM');
+        } else if (block.type === 'track_block') {
+          const source = getSource(block);
+          const pattern = getPattern(block);
+          if (source && pattern) {
+            tracks.push({
+              id: block.getFieldValue('TRACK_ID'),
+              source,
+              pattern,
+              effects: getEffects(block),
+            });
+          }
+        }
+        block = block.getNextBlock();
+      }
+    }
+  }
+
+  return { bpm, tracks };
+}

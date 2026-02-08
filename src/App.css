@@ -1,0 +1,158 @@
+.app {
+  display: grid;
+  grid-template-rows: var(--toolbar-height) 1fr var(--statusbar-height);
+  grid-template-columns: 1fr 400px;
+  grid-template-areas:
+    "toolbar toolbar"
+    "workspace codepanel"
+    "statusbar statusbar";
+  height: 100vh;
+  width: 100vw;
+}
+
+.app.code-panel-hidden {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "toolbar"
+    "workspace"
+    "statusbar";
+}
+
+/* Toolbar */
+.toolbar {
+  grid-area: toolbar;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+
+.toolbar-title {
+  font-weight: 700;
+  font-size: 1.1em;
+  color: var(--accent);
+}
+
+.toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.play-btn {
+  min-width: 100px;
+  font-weight: 600;
+}
+
+.play-btn.playing {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.bpm-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.85em;
+}
+
+/* Blockly Editor */
+.blockly-editor {
+  grid-area: workspace;
+  overflow: hidden;
+}
+
+/* Code Panel */
+.code-panel {
+  grid-area: codepanel;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.code-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.custom-badge {
+  background: var(--accent);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75em;
+  font-weight: 600;
+}
+
+.code-panel-editor {
+  flex: 1;
+  overflow: hidden;
+}
+
+.code-panel-editor .cm-editor {
+  height: 100%;
+}
+
+/* Status Bar */
+.statusbar {
+  grid-area: statusbar;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  font-size: 0.8em;
+  color: var(--text-secondary);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-indicator.active {
+  color: var(--success);
+}
+
+/* Error Boundary */
+.error-boundary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 16px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+}
+
+.error-boundary h2 {
+  color: var(--accent);
+}
+
+.error-boundary p {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  max-width: 500px;
+  text-align: center;
+}
