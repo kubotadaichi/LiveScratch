@@ -230,3 +230,87 @@
   font-size: 0.85em;
   padding: 4px 0;
 }
+
+/* Project List Dialog */
+.dialog-wide {
+  min-width: 400px;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.dialog-header h3 {
+  margin: 0;
+}
+
+.btn-small {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--accent);
+  color: white;
+  font-size: 0.8em;
+  cursor: pointer;
+}
+
+.dialog-empty {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.project-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.project-item {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.project-item-main {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 8px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.project-item-main:hover {
+  background: var(--bg-primary);
+}
+
+.project-title {
+  font-weight: 500;
+}
+
+.project-date {
+  color: var(--text-secondary);
+  font-size: 0.8em;
+}
+
+.project-item-delete {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  font-size: 0.9em;
+}
+
+.project-item-delete:hover {
+  color: #e94560;
+}
