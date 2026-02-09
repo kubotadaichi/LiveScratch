@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 import * as Tone from 'tone';
 import { AudioEngine } from '@/engine/AudioEngine';
 import type { LiveScratchIR } from '@/engine/types';
@@ -7,6 +7,7 @@ export function useAudioEngine() {
   const engineRef = useRef<AudioEngine | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm, setBpmState] = useState(120);
+  const [position, setPosition] = useState('0:0:0');
 
   const getEngine = useCallback(() => {
     if (!engineRef.current) {
@@ -24,6 +25,7 @@ export function useAudioEngine() {
   const stop = useCallback(() => {
     getEngine().stop();
     setIsPlaying(false);
+    setPosition('0:0:0');
   }, [getEngine]);
 
   const setBPM = useCallback(
@@ -46,5 +48,19 @@ export function useAudioEngine() {
     return engineRef.current?.getAudioData() ?? null;
   }, []);
 
-  return { isPlaying, bpm, play, stop, setBPM, applyIR, getAudioData };
+  // Poll transport position during playback
+  useEffect(() => {
+    if (!isPlaying) return;
+    let rafId: number;
+    const poll = () => {
+      if (engineRef.current) {
+        setPosition(engineRef.current.getPosition());
+      }
+      rafId = requestAnimationFrame(poll);
+    };
+    rafId = requestAnimationFrame(poll);
+    return () => cancelAnimationFrame(rafId);
+  }, [isPlaying]);
+
+  return { isPlaying, bpm, position, play, stop, setBPM, applyIR, getAudioData };
 }
