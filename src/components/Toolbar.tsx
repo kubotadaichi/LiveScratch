@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import type { User } from '@supabase/supabase-js';
 
 interface ToolbarProps {
@@ -12,6 +12,7 @@ interface ToolbarProps {
   // Project & Auth
   user: User | null;
   projectTitle: string;
+  onTitleChange: (title: string) => void;
   saving: boolean;
   onSave: () => void;
   onOpen: () => void;
@@ -30,6 +31,7 @@ export function Toolbar({
   onToggleCodePanel,
   user,
   projectTitle,
+  onTitleChange,
   saving,
   onSave,
   onOpen,
@@ -37,6 +39,25 @@ export function Toolbar({
   onAuth,
   onSignOut,
 }: ToolbarProps) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(projectTitle);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setDraft(projectTitle);
+  }, [projectTitle]);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.select();
+  }, [editing]);
+
+  const commitTitle = useCallback(() => {
+    setEditing(false);
+    const trimmed = draft.trim() || 'Untitled';
+    setDraft(trimmed);
+    onTitleChange(trimmed);
+  }, [draft, onTitleChange]);
+
   const handleBPMChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = parseInt(e.target.value, 10);
@@ -49,7 +70,30 @@ export function Toolbar({
     <div className="toolbar">
       <div className="toolbar-left">
         <span className="toolbar-title">Live Scratch</span>
-        <span className="toolbar-project-title">{projectTitle}</span>
+        {editing ? (
+          <input
+            ref={inputRef}
+            className="toolbar-project-input"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commitTitle}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitTitle();
+              if (e.key === 'Escape') {
+                setDraft(projectTitle);
+                setEditing(false);
+              }
+            }}
+          />
+        ) : (
+          <span
+            className="toolbar-project-title"
+            onClick={() => setEditing(true)}
+            title="Click to rename"
+          >
+            {projectTitle}
+          </span>
+        )}
       </div>
       <div className="toolbar-center">
         <button
