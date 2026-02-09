@@ -9,4 +9,15 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          blockly: ['blockly', '@blockly/field-colour'],
+          tone: ['tone'],
+          p5: ['p5'],
+        },
+      },
+    },
+  },
 })
