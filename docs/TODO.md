@@ -26,6 +26,7 @@
 
 ## 既知の改善点
 
-- [ ] バンドルサイズが大きい（~2.9MB）— Blockly/Tone.js/p5.js の dynamic import による分割を検討
-- [ ] ブロックのトラックIDが手入力 — 自動採番 or ユニークID生成
-- [ ] 小節番号のリアルタイム表示（Transport.position の購読）
+- [x] バンドルサイズが大きい（~2.9MB）— Blockly/Tone.js/p5.js の manualChunks による分割
+- [x] ブロックのトラックIDが手入力 — ブロック ID ベースの自動採番
+- [x] 小節番号のリアルタイム表示（Transport.position の購読）
+- [x] プロジェクト名のインライン編集
