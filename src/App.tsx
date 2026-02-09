@@ -17,7 +17,7 @@ function Editor() {
   const { id: paramId } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { isPlaying, bpm, play, stop, setBPM, applyIR, getAudioData } = useAudioEngine();
+  const { isPlaying, bpm, position, play, stop, setBPM, applyIR, getAudioData } = useAudioEngine();
   const { user, loading: authLoading, signInWithGoogle, signInWithGitHub, signOut } = useAuth();
   const {
     projectId,
@@ -185,6 +185,7 @@ function Editor() {
         onToggleCodePanel={() => setShowCodePanel((v) => !v)}
         user={user}
         projectTitle={projectTitle}
+        onTitleChange={setProjectTitle}
         saving={saving}
         onSave={handleSave}
         onOpen={handleOpen}
@@ -211,6 +212,7 @@ function Editor() {
         isPlaying={isPlaying}
         bpm={bpm}
         trackCount={ir.tracks.length}
+        position={position}
       />
       <AuthDialog
         open={showAuthDialog}
