@@ -1,5 +1,7 @@
 import * as Blockly from 'blockly';
 
+let trackCounter = 0;
+
 export function registerControlBlocks(): void {
   Blockly.Blocks['loop_block'] = {
     init(this: Blockly.Block) {
@@ -12,10 +14,12 @@ export function registerControlBlocks(): void {
 
   Blockly.Blocks['track_block'] = {
     init(this: Blockly.Block) {
+      trackCounter++;
+      const label = `Track ${trackCounter}`;
       this.appendValueInput('SOURCE')
         .setCheck('Source')
         .appendField('track')
-        .appendField(new Blockly.FieldTextInput('track1'), 'TRACK_ID');
+        .appendField(new Blockly.FieldLabel(label), 'TRACK_LABEL');
       this.appendValueInput('PATTERN')
         .setCheck('Pattern')
         .appendField('pattern');
