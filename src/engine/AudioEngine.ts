@@ -64,6 +64,10 @@ export class AudioEngine {
     this.currentIR = ir;
   }
 
+  getPosition(): string {
+    return Tone.getTransport().position as string;
+  }
+
   getAudioData(): AudioData | null {
     return this.analyser?.getData() ?? null;
   }
