@@ -100,7 +100,7 @@ export function workspaceToIR(workspace: Blockly.Workspace): LiveScratchIR {
           const pattern = getPattern(block);
           if (source && pattern) {
             tracks.push({
-              id: block.getFieldValue('TRACK_ID'),
+              id: block.id,
               source,
               pattern,
               effects: getEffects(block),
