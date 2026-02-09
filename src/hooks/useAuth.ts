@@ -22,21 +22,24 @@ export function useAuth() {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin },
     });
+    if (error) console.error('Google sign-in failed:', error.message);
   }, []);
 
   const signInWithGitHub = useCallback(async () => {
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: { redirectTo: window.location.origin },
     });
+    if (error) console.error('GitHub sign-in failed:', error.message);
   }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error('Sign-out failed:', error.message);
   }, []);
 
   return { user, loading, signInWithGoogle, signInWithGitHub, signOut };

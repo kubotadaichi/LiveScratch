@@ -37,6 +37,7 @@ function Editor() {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showProjectList, setShowProjectList] = useState(false);
   const [myProjects, setMyProjects] = useState<ProjectMeta[]>([]);
+  const [editorReady, setEditorReady] = useState(false);
 
   const editorRef = useRef<BlocklyEditorHandle>(null);
 
@@ -73,14 +74,14 @@ function Editor() {
 
   // Load shared project from URL
   useEffect(() => {
-    if (paramId && editorRef.current) {
+    if (paramId && editorReady) {
       loadProject(paramId).then((project) => {
         if (project) {
           editorRef.current?.loadWorkspace(project.workspace);
         }
       });
     }
-  }, [paramId, loadProject]);
+  }, [paramId, editorReady, loadProject]);
 
   // Space key to toggle play/stop
   useEffect(() => {
@@ -129,6 +130,7 @@ function Editor() {
   // Delete project
   const handleDeleteProject = useCallback(
     async (id: string) => {
+      if (!confirm('Delete this project?')) return;
       const ok = await deleteProject(id);
       if (ok && user) {
         const projects = await listMyProjects(user.id);
@@ -154,9 +156,13 @@ function Editor() {
     const id = await saveProject(user.id, projectTitle || 'Untitled', workspace);
     if (id) {
       const url = `${window.location.origin}/p/${id}`;
-      await navigator.clipboard.writeText(url);
       navigate(`/p/${id}`, { replace: true });
-      alert(`Link copied!\n${url}`);
+      try {
+        await navigator.clipboard.writeText(url);
+        alert(`Link copied!\n${url}`);
+      } catch {
+        prompt('Copy this link to share:', url);
+      }
     }
   }, [user, projectTitle, saveProject, navigate]);
 
@@ -191,6 +197,7 @@ function Editor() {
         onIRChange={handleIRChange}
         onBlockSelect={setSelectedBlockId}
         resizeTrigger={showCodePanel}
+        onReady={() => setEditorReady(true)}
       />
       <P5Canvas
         visual={ir.visual}

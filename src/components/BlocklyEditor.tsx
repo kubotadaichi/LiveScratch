@@ -31,6 +31,7 @@ interface BlocklyEditorProps {
   onIRChange: (ir: LiveScratchIR) => void;
   onBlockSelect?: (blockId: string | null) => void;
   resizeTrigger?: unknown;
+  onReady?: () => void;
 }
 
 function createInitialTemplate(workspace: Blockly.WorkspaceSvg) {
@@ -100,7 +101,7 @@ function createInitialTemplate(workspace: Blockly.WorkspaceSvg) {
 }
 
 export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>(
-  function BlocklyEditor({ onIRChange, onBlockSelect, resizeTrigger }, ref) {
+  function BlocklyEditor({ onIRChange, onBlockSelect, resizeTrigger, onReady }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
 
@@ -183,6 +184,7 @@ export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>
 
       // Initial IR generation
       handleWorkspaceChange();
+      onReady?.();
 
       return () => {
         workspace.dispose();
