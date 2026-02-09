@@ -47,7 +47,6 @@ function createInitialTemplate(workspace: Blockly.WorkspaceSvg) {
   bpmBlock.render();
 
   const kickTrack = workspace.newBlock('track_block');
-  kickTrack.setFieldValue('kick', 'TRACK_ID');
   kickTrack.initSvg();
   kickTrack.render();
 
@@ -62,7 +61,6 @@ function createInitialTemplate(workspace: Blockly.WorkspaceSvg) {
   kickPattern.render();
 
   const hihatTrack = workspace.newBlock('track_block');
-  hihatTrack.setFieldValue('hihat', 'TRACK_ID');
   hihatTrack.initSvg();
   hihatTrack.render();
 
@@ -172,7 +170,7 @@ export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>
           if (blockId) {
             const block = workspace.getBlockById(blockId);
             if (block?.type === 'track_block') {
-              onBlockSelect?.(block.getFieldValue('TRACK_ID'));
+              onBlockSelect?.(block.id);
             } else {
               onBlockSelect?.(null);
             }
