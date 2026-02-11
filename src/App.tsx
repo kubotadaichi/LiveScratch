@@ -46,10 +46,47 @@ function Editor() {
 
   const handleIRChange = useCallback(
     (newIR: LiveScratchIR) => {
+      // Check if any tracks with customCode are being modified by block changes
+      const currentTracks = ir.tracks.filter((t) => t.customCode);
+      if (currentTracks.length > 0) {
+        const affected = currentTracks.filter((ct) => {
+          const newTrack = newIR.tracks.find((nt) => nt.id === ct.id);
+          if (!newTrack) return true; // track removed
+          // Compare without customCode
+          const { customCode: _a, ...prevBase } = ct;
+          const { customCode: _b, ...nextBase } = newTrack;
+          return JSON.stringify(prevBase) !== JSON.stringify(nextBase);
+        });
+
+        if (affected.length > 0) {
+          const keep = confirm(
+            'Some tracks have custom code edits. Block changes will discard custom code for affected tracks. Continue?'
+          );
+          if (!keep) return;
+          // Strip customCode from affected tracks
+          newIR = {
+            ...newIR,
+            tracks: newIR.tracks.map((t) =>
+              affected.some((a) => a.id === t.id)
+                ? { ...t, customCode: undefined }
+                : { ...t, customCode: ir.tracks.find((ct) => ct.id === t.id)?.customCode }
+            ),
+          };
+        } else {
+          // Preserve customCode for unchanged tracks
+          newIR = {
+            ...newIR,
+            tracks: newIR.tracks.map((t) => ({
+              ...t,
+              customCode: ir.tracks.find((ct) => ct.id === t.id)?.customCode,
+            })),
+          };
+        }
+      }
       setIR(newIR);
       applyIR(newIR);
     },
-    [applyIR]
+    [applyIR, ir.tracks]
   );
 
   const handleBPMChange = useCallback(
