@@ -172,11 +172,12 @@ export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>
             if (block?.type === 'track_block') {
               onBlockSelect?.(block.id);
             } else {
+              // Non-track block selected; clear selection
               onBlockSelect?.(null);
             }
-          } else {
-            onBlockSelect?.(null);
           }
+          // When blockId is null (click on empty area or external focus loss),
+          // keep the current selection so CodePanel stays active
         }
       });
 
