@@ -8,6 +8,7 @@ import type { Track } from '@/engine/types';
 interface CodePanelProps {
   track: Track | null;
   onCustomCode?: (trackId: string, code: string) => void;
+  onReset?: (trackId: string) => void;
 }
 
 function trackToCode(track: Track): string {
@@ -63,7 +64,7 @@ function trackToCode(track: Track): string {
   return lines.join('\n');
 }
 
-export function CodePanel({ track, onCustomCode }: CodePanelProps) {
+export function CodePanel({ track, onCustomCode, onReset }: CodePanelProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
 
@@ -109,9 +110,19 @@ export function CodePanel({ track, onCustomCode }: CodePanelProps) {
     <div className="code-panel">
       <div className="code-panel-header">
         <span>Code {track ? `- ${track.id}` : ''}</span>
-        {track?.customCode && (
-          <span className="custom-badge">Custom</span>
-        )}
+        <div className="code-panel-actions">
+          {track?.customCode && (
+            <>
+              <span className="custom-badge">Custom</span>
+              <button
+                className="code-panel-reset"
+                onClick={() => track && onReset?.(track.id)}
+              >
+                Reset to Generated
+              </button>
+            </>
+          )}
+        </div>
       </div>
       <div ref={editorRef} className="code-panel-editor" />
     </div>

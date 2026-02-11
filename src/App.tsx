@@ -83,6 +83,22 @@ function Editor() {
     [applyIR]
   );
 
+  const handleResetCode = useCallback(
+    (trackId: string) => {
+      setIR((prev) => {
+        const next = {
+          ...prev,
+          tracks: prev.tracks.map((t) =>
+            t.id === trackId ? { ...t, customCode: undefined } : t
+          ),
+        };
+        applyIR(next);
+        return next;
+      });
+    },
+    [applyIR]
+  );
+
   // Load shared project from URL
   useEffect(() => {
     if (paramId && editorReady) {
@@ -217,7 +233,11 @@ function Editor() {
         isPlaying={isPlaying}
       />
       {showCodePanel && (
-        <CodePanel track={selectedTrack} onCustomCode={handleCustomCode} />
+        <CodePanel
+          track={selectedTrack}
+          onCustomCode={handleCustomCode}
+          onReset={handleResetCode}
+        />
       )}
       <StatusBar
         isPlaying={isPlaying}

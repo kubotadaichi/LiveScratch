@@ -105,6 +105,12 @@
   border-bottom: 1px solid var(--border);
 }
 
+.code-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .custom-badge {
   background: var(--accent);
   color: white;
@@ -112,6 +118,21 @@
   border-radius: 10px;
   font-size: 0.75em;
   font-weight: 600;
+}
+
+.code-panel-reset {
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-secondary);
+  font-size: 0.75em;
+  cursor: pointer;
+}
+
+.code-panel-reset:hover {
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .code-panel-editor {
