@@ -160,7 +160,7 @@ function Editor() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPlaying, play, stop]);
 
-  // Save handler
+  // Note: customCode is session-only; project save/load uses block workspace only
   const handleSave = useCallback(async () => {
     if (!user || !editorRef.current) return;
     const workspace = editorRef.current.saveWorkspace();
