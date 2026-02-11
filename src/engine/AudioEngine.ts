@@ -51,13 +51,21 @@ export class AudioEngine {
 
     // Add and update tracks immediately for responsive live coding
     for (const track of diff.addedTracks) {
-      this.tracks.set(track.id, new TrackManager(track));
+      const tm = new TrackManager(track);
+      if (track.customCode) {
+        tm.applyCustomCode(track.customCode);
+      }
+      this.tracks.set(track.id, tm);
     }
 
     for (const track of diff.updatedTracks) {
       const existing = this.tracks.get(track.id);
       if (existing) {
-        existing.update(track);
+        if (track.customCode) {
+          existing.applyCustomCode(track.customCode);
+        } else {
+          existing.update(track);
+        }
       }
     }
 
