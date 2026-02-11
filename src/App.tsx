@@ -60,6 +60,8 @@ function Editor() {
     [setBPM]
   );
 
+  const applyIRDebounced = useRef<ReturnType<typeof setTimeout>>();
+
   const handleCustomCode = useCallback(
     (trackId: string, code: string) => {
       setIR((prev) => ({
@@ -68,8 +70,17 @@ function Editor() {
           t.id === trackId ? { ...t, customCode: code } : t
         ),
       }));
+
+      // Debounce audio engine application
+      clearTimeout(applyIRDebounced.current);
+      applyIRDebounced.current = setTimeout(() => {
+        setIR((current) => {
+          applyIR(current);
+          return current;
+        });
+      }, 500);
     },
-    []
+    [applyIR]
   );
 
   // Load shared project from URL
