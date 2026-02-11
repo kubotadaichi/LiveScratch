@@ -100,6 +100,30 @@ export class TrackManager {
     this.build(track);
   }
 
+  applyCustomCode(code: string): void {
+    // Dispose current audio nodes
+    this.sequence?.stop();
+    this.sequence?.dispose();
+    this.sequence = null;
+    this.effectChain?.dispose();
+    this.effectChain = null;
+    if (this.source) {
+      (this.source as any).disconnect?.();
+      this.source.dispose();
+      this.source = null;
+    }
+
+    try {
+      // Execute custom code in a function scope with Tone available
+      const fn = new Function('Tone', code + '\nreturn { source: synth, sequence: seq };');
+      const result = fn(Tone);
+      this.source = result.source;
+      this.sequence = result.sequence;
+    } catch (e) {
+      console.error(`[TrackManager] Custom code error for ${this.trackId}:`, e);
+    }
+  }
+
   dispose(): void {
     this.sequence?.stop();
     this.sequence?.dispose();
