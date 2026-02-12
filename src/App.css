@@ -393,7 +393,8 @@
 }
 
 /* Style for blocks with custom code */
-.blocklyDraggable.has-custom-code > .blocklyPath {
-  stroke: orange !important;
+.has-custom-code > .blocklyPath {
+  stroke: #ff9800 !important;
   stroke-width: 3px !important;
+  stroke-dasharray: 6 3 !important;
 }

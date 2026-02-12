@@ -215,11 +215,13 @@ export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>
         const workspace = workspaceRef.current;
         workspace.getAllBlocks(false).forEach(block => {
           if (block.type === 'track_block') {
+            const svg = block.getSvgRoot();
+            if (!svg) return;
             const hasCustomCode = status[block.id];
             if (hasCustomCode) {
-              block.addCssClass('has-custom-code');
+              svg.classList.add('has-custom-code');
             } else {
-              block.removeCssClass('has-custom-code');
+              svg.classList.remove('has-custom-code');
             }
           }
         });
