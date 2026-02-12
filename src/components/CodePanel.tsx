@@ -67,7 +67,13 @@ function trackToCode(track: Track): string {
 export function CodePanel({ track, onCustomCode, onReset }: CodePanelProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const callbackRef = useRef({ onCustomCode, trackId: track?.id });
 
+  // Keep callback ref up to date without recreating editor
+  callbackRef.current = { onCustomCode, trackId: track?.id };
+
+  // Recreate editor only when track ID changes (not on every keystroke)
+  const trackId = track?.id ?? null;
   useEffect(() => {
     if (!editorRef.current) return;
 
@@ -84,8 +90,8 @@ export function CodePanel({ track, onCustomCode, onReset }: CodePanelProps) {
         javascript(),
         oneDark,
         EditorView.updateListener.of((update) => {
-          if (update.docChanged && track && onCustomCode) {
-            onCustomCode(track.id, update.state.doc.toString());
+          if (update.docChanged && callbackRef.current.trackId && callbackRef.current.onCustomCode) {
+            callbackRef.current.onCustomCode(callbackRef.current.trackId, update.state.doc.toString());
           }
         }),
         EditorView.theme({
@@ -104,7 +110,7 @@ export function CodePanel({ track, onCustomCode, onReset }: CodePanelProps) {
       viewRef.current?.destroy();
       viewRef.current = null;
     };
-  }, [track, onCustomCode]);
+  }, [trackId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="code-panel">
