@@ -17,7 +17,7 @@ function Editor() {
   const { id: paramId } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { isPlaying, bpm, position, play, stop, setBPM, applyIR, getAudioData, applyCustomCodeToTrack } = useAudioEngine();
+  const { isPlaying, bpm, position, play, stop, setBPM, applyIR, getAudioData, applyCustomCodeToTrack, getTracksCustomCodeStatus } = useAudioEngine();
   const { user, loading: authLoading, signInWithGoogle, signInWithGitHub, signOut } = useAuth();
   const {
     projectId,
@@ -240,6 +240,7 @@ function Editor() {
         onBlockSelect={setSelectedBlockId}
         resizeTrigger={showCodePanel}
         onReady={() => setEditorReady(true)}
+        getTracksCustomCodeStatus={getTracksCustomCodeStatus}
       />
       <P5Canvas
         visual={ir.visual}

@@ -32,6 +32,7 @@ interface BlocklyEditorProps {
   onBlockSelect?: (blockId: string | null) => void;
   resizeTrigger?: unknown;
   onReady?: () => void;
+  getTracksCustomCodeStatus?: () => Record<string, boolean>;
 }
 
 function createInitialTemplate(workspace: Blockly.WorkspaceSvg) {
@@ -99,7 +100,7 @@ function createInitialTemplate(workspace: Blockly.WorkspaceSvg) {
 }
 
 export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>(
-  function BlocklyEditor({ onIRChange, onBlockSelect, resizeTrigger, onReady }, ref) {
+  function BlocklyEditor({ onIRChange, onBlockSelect, resizeTrigger, onReady, getTracksCustomCodeStatus = () => ({}) }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
 
@@ -205,6 +206,27 @@ export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>
         clearTimeout(timer);
       };
     }, [resizeTrigger]);
+
+    // Poll for custom code status and update block visuals
+    useEffect(() => {
+      const intervalId = setInterval(() => {
+        if (!workspaceRef.current) return;
+        const status = getTracksCustomCodeStatus();
+        const workspace = workspaceRef.current;
+        workspace.getAllBlocks(false).forEach(block => {
+          if (block.type === 'track_block') {
+            const hasCustomCode = status[block.id];
+            if (hasCustomCode) {
+              block.addCssClass('has-custom-code');
+            } else {
+              block.removeCssClass('has-custom-code');
+            }
+          }
+        });
+      }, 500); // Poll every 500ms
+
+      return () => clearInterval(intervalId);
+    }, [getTracksCustomCodeStatus]);
 
     return <div ref={containerRef} className="blockly-editor" />;
   }
