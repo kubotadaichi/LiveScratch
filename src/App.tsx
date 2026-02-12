@@ -17,7 +17,7 @@ function Editor() {
   const { id: paramId } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { isPlaying, bpm, position, play, stop, setBPM, applyIR, getAudioData } = useAudioEngine();
+  const { isPlaying, bpm, position, play, stop, setBPM, applyIR, getAudioData, applyCustomCodeToTrack } = useAudioEngine();
   const { user, loading: authLoading, signInWithGoogle, signInWithGitHub, signOut } = useAuth();
   const {
     projectId,
@@ -95,29 +95,6 @@ function Editor() {
       setIR((prev) => ({ ...prev, bpm: newBpm }));
     },
     [setBPM]
-  );
-
-  const applyIRDebounced = useRef<ReturnType<typeof setTimeout>>();
-
-  const handleCustomCode = useCallback(
-    (trackId: string, code: string) => {
-      setIR((prev) => ({
-        ...prev,
-        tracks: prev.tracks.map((t) =>
-          t.id === trackId ? { ...t, customCode: code } : t
-        ),
-      }));
-
-      // Debounce audio engine application
-      clearTimeout(applyIRDebounced.current);
-      applyIRDebounced.current = setTimeout(() => {
-        setIR((current) => {
-          applyIR(current);
-          return current;
-        });
-      }, 500);
-    },
-    [applyIR]
   );
 
   const handleResetCode = useCallback(
@@ -272,7 +249,7 @@ function Editor() {
       {showCodePanel && (
         <CodePanel
           track={selectedTrack}
-          onCustomCode={handleCustomCode}
+          applyCustomCode={applyCustomCodeToTrack}
           onReset={handleResetCode}
         />
       )}

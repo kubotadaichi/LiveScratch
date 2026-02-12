@@ -72,6 +72,28 @@ export class AudioEngine {
     this.currentIR = ir;
   }
 
+  applyCustomCode(trackId: string, code: string): void {
+    const trackManager = this.tracks.get(trackId);
+    if (trackManager) {
+      trackManager.applyCustomCode(code);
+      // Update the IR to persist the custom code
+      if (this.currentIR) {
+        const track = this.currentIR.tracks.find(t => t.id === trackId);
+        if (track) {
+          track.customCode = code;
+        }
+      }
+    }
+  }
+
+  getTracksCustomCodeStatus(): Record<string, boolean> {
+    const status: Record<string, boolean> = {};
+    this.tracks.forEach((track, id) => {
+      status[id] = track.customCodeApplied;
+    });
+    return status;
+  }
+
   getPosition(): string {
     return Tone.getTransport().position as string;
   }

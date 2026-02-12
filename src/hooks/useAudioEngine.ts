@@ -44,6 +44,14 @@ export function useAudioEngine() {
     [getEngine]
   );
 
+  const applyCustomCodeToTrack = useCallback((trackId: string, code: string) => {
+    getEngine().applyCustomCode(trackId, code);
+  }, [getEngine]);
+
+  const getTracksCustomCodeStatus = useCallback(() => {
+    return getEngine().getTracksCustomCodeStatus();
+  }, [getEngine]);
+
   const getAudioData = useCallback(() => {
     return engineRef.current?.getAudioData() ?? null;
   }, []);
@@ -62,5 +70,5 @@ export function useAudioEngine() {
     return () => cancelAnimationFrame(rafId);
   }, [isPlaying]);
 
-  return { isPlaying, bpm, position, play, stop, setBPM, applyIR, getAudioData };
+  return { isPlaying, bpm, position, play, stop, setBPM, applyIR, applyCustomCodeToTrack, getTracksCustomCodeStatus, getAudioData };
 }

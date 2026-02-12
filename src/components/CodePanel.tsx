@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { EditorView, basicSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -7,8 +7,8 @@ import type { Track } from '@/engine/types';
 
 interface CodePanelProps {
   track: Track | null;
-  onCustomCode?: (trackId: string, code: string) => void;
-  onReset?: (trackId: string) => void;
+  applyCustomCode: (trackId: string, code: string) => void;
+  onReset?: (trackId:string) => void;
 }
 
 function trackToCode(track: Track): string {
@@ -64,34 +64,41 @@ function trackToCode(track: Track): string {
   return lines.join('\n');
 }
 
-export function CodePanel({ track, onCustomCode, onReset }: CodePanelProps) {
+export function CodePanel({ track, applyCustomCode, onReset }: CodePanelProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
-  const callbackRef = useRef({ onCustomCode, trackId: track?.id });
+  
+  const [customCode, setCustomCode] = useState<string>('');
+  const [appliedCode, setAppliedCode] = useState<string>('');
+  
+  const hasUnappliedChanges = customCode !== appliedCode;
 
-  // Keep callback ref up to date without recreating editor
-  callbackRef.current = { onCustomCode, trackId: track?.id };
+  // When track changes, update the code in the editor
+  useEffect(() => {
+    const newCode = track ? (track.customCode || trackToCode(track)) : '// Select a track block to view its code';
+    setCustomCode(newCode);
+    setAppliedCode(newCode); // Reset applied code on track change
+    
+    if (viewRef.current) {
+      viewRef.current.dispatch({
+        changes: { from: 0, to: viewRef.current.state.doc.length, insert: newCode }
+      });
+    }
+  }, [track]);
 
-  // Recreate editor only when track ID changes (not on every keystroke)
-  const trackId = track?.id ?? null;
+
   useEffect(() => {
     if (!editorRef.current) return;
 
-    const code = track ? (track.customCode || trackToCode(track)) : '// Select a track block to view its code';
-
-    if (viewRef.current) {
-      viewRef.current.destroy();
-    }
-
     const state = EditorState.create({
-      doc: code,
+      doc: customCode,
       extensions: [
         basicSetup,
         javascript(),
         oneDark,
         EditorView.updateListener.of((update) => {
-          if (update.docChanged && callbackRef.current.trackId && callbackRef.current.onCustomCode) {
-            callbackRef.current.onCustomCode(callbackRef.current.trackId, update.state.doc.toString());
+          if (update.docChanged) {
+            setCustomCode(update.state.doc.toString());
           }
         }),
         EditorView.theme({
@@ -110,7 +117,14 @@ export function CodePanel({ track, onCustomCode, onReset }: CodePanelProps) {
       viewRef.current?.destroy();
       viewRef.current = null;
     };
-  }, [trackId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // Should only run once
+
+  const handleApplyCode = () => {
+    if (track) {
+      applyCustomCode(track.id, customCode);
+      setAppliedCode(customCode);
+    }
+  };
 
   return (
     <div className="code-panel">
@@ -131,6 +145,15 @@ export function CodePanel({ track, onCustomCode, onReset }: CodePanelProps) {
         </div>
       </div>
       <div ref={editorRef} className="code-panel-editor" />
+      <div className="flex justify-between items-center p-2 border-t border-gray-700">
+        <button
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:opacity-50"
+          onClick={handleApplyCode}
+          disabled={!hasUnappliedChanges || !customCode || !track}
+        >
+          Apply
+        </button>
+      </div>
     </div>
   );
 }

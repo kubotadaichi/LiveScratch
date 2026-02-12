@@ -7,10 +7,19 @@ export class TrackManager {
   private sequence: Tone.Sequence | null = null;
   private effectChain: EffectChain | null = null;
   private trackId: string;
+  private _customCodeApplied: boolean = false;
 
   constructor(track: Track) {
     this.trackId = track.id;
     this.build(track);
+  }
+
+  setCustomCodeApplied(value: boolean) {
+    this._customCodeApplied = value;
+  }
+
+  get customCodeApplied(): boolean {
+    return this._customCodeApplied;
   }
 
   private build(track: Track): void {
@@ -98,29 +107,21 @@ export class TrackManager {
   update(track: Track): void {
     this.dispose();
     this.build(track);
+    this.setCustomCodeApplied(false);
   }
 
   applyCustomCode(code: string): void {
-    // Dispose current audio nodes
-    this.sequence?.stop();
-    this.sequence?.dispose();
-    this.sequence = null;
-    this.effectChain?.dispose();
-    this.effectChain = null;
-    if (this.source) {
-      (this.source as any).disconnect?.();
-      this.source.dispose();
-      this.source = null;
-    }
+    this.dispose();
 
     try {
-      // Execute custom code in a function scope with Tone available
-      const fn = new Function('Tone', code + '\nreturn { source: synth, sequence: seq };');
-      const result = fn(Tone);
-      this.source = result.source;
-      this.sequence = result.sequence;
-    } catch (e) {
-      console.error(`[TrackManager] Custom code error for ${this.trackId}:`, e);
+      // Execute custom code in a function scope with Tone and the track object available
+      const customFunction = new Function('Tone', 'track', code);
+      customFunction(Tone, this); // 'this' refers to the TrackManager instance
+      this.setCustomCodeApplied(true);
+      console.log(`Custom code applied to track ${this.id}`);
+    } catch (error) {
+      console.error(`Error applying custom code to track ${this.id}:`, error);
+      // Potentially revert or at least leave the track in a silent, stable state
     }
   }
 
