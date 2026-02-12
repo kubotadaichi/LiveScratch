@@ -24,6 +24,10 @@
 - [ ] カスタムブロックの作成・共有
 - [ ] モバイル対応
 
+## 既知のバグ
+
+- [ ] 「Reset to Generated」でブロック生成コードに戻した際、変更後の音が鳴り続け元の音に戻らない（AudioEngine/TrackManager のリセット処理が不完全）
+
 ## 既知の改善点
 
 - [x] バンドルサイズが大きい（~2.9MB）— Blockly/Tone.js/p5.js の manualChunks による分割
