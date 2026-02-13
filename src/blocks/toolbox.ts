@@ -1,3 +1,5 @@
+import { getAllRegisteredCustomBlocks } from './customBlockRegistry';
+
 export const toolbox = {
   kind: 'categoryToolbox',
   contents: [
@@ -131,3 +133,27 @@ export const toolbox = {
     },
   ],
 };
+
+export function buildToolbox() {
+  const customBlocks = getAllRegisteredCustomBlocks();
+  if (customBlocks.length === 0) return toolbox;
+
+  const customByCategory = new Map<string, typeof customBlocks>();
+  for (const cb of customBlocks) {
+    const cat = (cb.definition as { category?: string }).category ?? 'Custom';
+    if (!customByCategory.has(cat)) customByCategory.set(cat, []);
+    customByCategory.get(cat)!.push(cb);
+  }
+
+  const customCategories = Array.from(customByCategory.entries()).map(([cat, blocks]) => ({
+    kind: 'category' as const,
+    name: cat,
+    colour: '230',
+    contents: blocks.map(b => ({ kind: 'block' as const, type: b.blockType })),
+  }));
+
+  return {
+    ...toolbox,
+    contents: [...toolbox.contents, ...customCategories],
+  };
+}
