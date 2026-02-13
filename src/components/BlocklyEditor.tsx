@@ -212,10 +212,24 @@ export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>
     // Toggle workspace background transparency for visual bg mode
     useEffect(() => {
       if (!workspaceRef.current) return;
-      const svg = workspaceRef.current.getParentSvg();
+      const ws = workspaceRef.current;
+
+      // Make the Blockly SVG background transparent
+      const svg = ws.getParentSvg();
       const bgRect = svg?.querySelector('.blocklyMainBackground') as SVGRectElement | null;
       if (bgRect) {
         bgRect.style.fill = transparentBg ? 'rgba(26, 26, 46, 0.3)' : '';
+      }
+
+      // Make the injected wrapper div background transparent
+      const injectionDiv = svg?.closest('.injectionDiv') as HTMLElement | null;
+      if (injectionDiv) {
+        injectionDiv.style.background = transparentBg ? 'transparent' : '';
+      }
+
+      // Make the blockly container transparent
+      if (containerRef.current) {
+        containerRef.current.style.background = transparentBg ? 'transparent' : '';
       }
     }, [transparentBg]);
 
