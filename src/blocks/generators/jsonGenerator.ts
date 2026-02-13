@@ -10,6 +10,7 @@ import type {
   VisualConfig,
   Modulation,
 } from '@/engine/types';
+import { isCustomBlock, getCustomBlockGenerator } from '@/blocks/customBlockRegistry';
 
 function getSource(block: Blockly.Block): Source | null {
   const sourceBlock = block.getInputTargetBlock('SOURCE');
@@ -105,6 +106,27 @@ export function workspaceToIR(workspace: Blockly.Workspace): LiveScratchIR {
               pattern,
               effects: getEffects(block),
             });
+          }
+        } else if (isCustomBlock(block.type)) {
+          const genCode = getCustomBlockGenerator(block.type);
+          if (genCode) {
+            try {
+              const fields: Record<string, unknown> = {};
+              block.inputList.forEach(input => {
+                input.fieldRow.forEach(field => {
+                  if (field.name) {
+                    fields[field.name] = field.getValue();
+                  }
+                });
+              });
+              const generator = new Function('fields', 'blockId', genCode);
+              const fragment = generator(fields, block.id);
+              if (fragment?.type === 'track') {
+                tracks.push(fragment);
+              }
+            } catch (e) {
+              console.error(`Custom block generator error for ${block.type}:`, e);
+            }
           }
         }
         block = block.getNextBlock();
