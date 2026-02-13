@@ -8,11 +8,26 @@ import { CodePanel } from '@/components/CodePanel';
 import { StatusBar } from '@/components/StatusBar';
 import { AuthDialog } from '@/components/AuthDialog';
 import { ProjectListDialog } from '@/components/ProjectListDialog';
+import { CustomBlockDialog } from '@/components/CustomBlockDialog';
+import { BlockBrowserDialog } from '@/components/BlockBrowserDialog';
 import { useAudioEngine } from '@/hooks/useAudioEngine';
 import { useAuth } from '@/hooks/useAuth';
 import { useProject, type ProjectMeta } from '@/hooks/useProject';
+import { useCustomBlocks, type CustomBlockMeta, type CustomBlockFull } from '@/hooks/useCustomBlocks';
+import { registerCustomBlock, unregisterCustomBlock } from '@/blocks/customBlockRegistry';
 import type { LiveScratchIR, Track } from '@/engine/types';
 import './App.css';
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < breakpoint);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 function Editor() {
   const { id: paramId } = useParams<{ id: string }>();
@@ -39,6 +54,17 @@ function Editor() {
   const [showProjectList, setShowProjectList] = useState(false);
   const [myProjects, setMyProjects] = useState<ProjectMeta[]>([]);
   const [editorReady, setEditorReady] = useState(false);
+  const [visualBgMode, setVisualBgMode] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Custom blocks
+  const { listMyBlocks, listPublicBlocks, getBlock, saveBlock, deleteBlock: deleteCustomBlock } = useCustomBlocks();
+  const [showBlockBrowser, setShowBlockBrowser] = useState(false);
+  const [showBlockEditor, setShowBlockEditor] = useState(false);
+  const [editingBlock, setEditingBlock] = useState<CustomBlockFull | null>(null);
+  const [myBlocks, setMyBlocks] = useState<CustomBlockMeta[]>([]);
+  const [publicBlocks, setPublicBlocks] = useState<CustomBlockMeta[]>([]);
+  const [installedBlockIds, setInstalledBlockIds] = useState<Set<string>>(new Set());
 
   const editorRef = useRef<BlocklyEditorHandle>(null);
 
@@ -213,6 +239,53 @@ function Editor() {
     setShowAuthDialog(true);
   }, []);
 
+  // Custom blocks handlers
+  const handleRefreshBlocks = useCallback(async () => {
+    if (user) {
+      setMyBlocks(await listMyBlocks(user.id));
+    }
+    setPublicBlocks(await listPublicBlocks());
+  }, [user, listMyBlocks, listPublicBlocks]);
+
+  const handleInstallBlock = useCallback(async (id: string) => {
+    const block = await getBlock(id);
+    if (!block) return;
+    registerCustomBlock(id, block.name, block.definition, block.generator_code);
+    setInstalledBlockIds(prev => new Set([...prev, id]));
+    editorRef.current?.refreshToolbox();
+  }, [getBlock]);
+
+  const handleUninstallBlock = useCallback((id: string) => {
+    unregisterCustomBlock(id);
+    setInstalledBlockIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    editorRef.current?.refreshToolbox();
+  }, []);
+
+  const handleSaveCustomBlock = useCallback(async (block: Parameters<typeof saveBlock>[1]) => {
+    if (!user) return;
+    await saveBlock(user.id, block);
+    handleRefreshBlocks();
+  }, [user, saveBlock, handleRefreshBlocks]);
+
+  const handleEditBlock = useCallback(async (id: string) => {
+    const block = await getBlock(id);
+    if (block) {
+      setEditingBlock(block);
+      setShowBlockEditor(true);
+    }
+  }, [getBlock]);
+
+  const handleDeleteCustomBlock = useCallback(async (id: string) => {
+    if (!confirm('Delete this custom block?')) return;
+    handleUninstallBlock(id);
+    await deleteCustomBlock(id);
+    handleRefreshBlocks();
+  }, [deleteCustomBlock, handleUninstallBlock, handleRefreshBlocks]);
+
   if (authLoading) return null;
 
   return (
@@ -234,29 +307,48 @@ function Editor() {
         onShare={handleShare}
         onAuth={handleAuth}
         onSignOut={signOut}
+        visualBgMode={visualBgMode}
+        onToggleVisualBg={() => setVisualBgMode((v) => !v)}
+        isMobile={isMobile}
+        onCustomBlocks={() => setShowBlockBrowser(true)}
       />
-      <Group orientation="horizontal" id="live-scratch-panels" className="panel-group">
-        <Panel defaultSize="40%" minSize="20%" className="panel-workspace" id="workspace">
+      <Group orientation={isMobile ? 'vertical' : 'horizontal'} id={isMobile ? 'live-scratch-panels-mobile' : 'live-scratch-panels'} className="panel-group">
+        <Panel defaultSize={visualBgMode ? '100%' : '40%'} minSize="20%" className="panel-workspace" id="workspace">
+          {visualBgMode && ir.visual && (
+            <Suspense fallback={null}>
+              <LazyP5Canvas
+                visual={ir.visual}
+                getAudioData={getAudioData}
+                isPlaying={isPlaying}
+                overlay
+              />
+            </Suspense>
+          )}
           <BlocklyEditor
             ref={editorRef}
             onIRChange={handleIRChange}
             onBlockSelect={setSelectedBlockId}
             onReady={() => setEditorReady(true)}
             getTracksCustomCodeStatus={getTracksCustomCodeStatus}
+            transparentBg={visualBgMode}
           />
         </Panel>
-        <Separator className="resize-handle" />
-        <Panel defaultSize={showCodePanel ? '40%' : '60%'} minSize="15%" className="panel-canvas" id="canvas">
-          {ir.visual && (
-            <Suspense fallback={null}>
-              <LazyP5Canvas
-                visual={ir.visual}
-                getAudioData={getAudioData}
-                isPlaying={isPlaying}
-              />
-            </Suspense>
-          )}
-        </Panel>
+        {!visualBgMode && (
+          <>
+            <Separator className="resize-handle" />
+            <Panel defaultSize={showCodePanel ? '40%' : '60%'} minSize="15%" className="panel-canvas" id="canvas">
+              {ir.visual && (
+                <Suspense fallback={null}>
+                  <LazyP5Canvas
+                    visual={ir.visual}
+                    getAudioData={getAudioData}
+                    isPlaying={isPlaying}
+                  />
+                </Suspense>
+              )}
+            </Panel>
+          </>
+        )}
         {showCodePanel && (
           <>
             <Separator className="resize-handle" />
@@ -289,6 +381,25 @@ function Editor() {
         onSelect={handleSelectProject}
         onDelete={handleDeleteProject}
         onNew={handleNewProject}
+      />
+      <BlockBrowserDialog
+        open={showBlockBrowser}
+        onClose={() => setShowBlockBrowser(false)}
+        myBlocks={myBlocks}
+        publicBlocks={publicBlocks}
+        installedIds={installedBlockIds}
+        onInstall={handleInstallBlock}
+        onUninstall={handleUninstallBlock}
+        onEdit={handleEditBlock}
+        onDelete={handleDeleteCustomBlock}
+        onCreate={() => { setEditingBlock(null); setShowBlockEditor(true); }}
+        onRefresh={handleRefreshBlocks}
+      />
+      <CustomBlockDialog
+        open={showBlockEditor}
+        onClose={() => { setShowBlockEditor(false); setEditingBlock(null); }}
+        onSave={handleSaveCustomBlock}
+        initial={editingBlock ?? undefined}
       />
     </div>
   );

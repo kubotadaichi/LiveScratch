@@ -7,9 +7,10 @@ interface P5CanvasProps {
   visual: VisualDefinition | undefined;
   getAudioData: () => AudioData | null;
   isPlaying: boolean;
+  overlay?: boolean;
 }
 
-export function P5Canvas({ visual, getAudioData, isPlaying }: P5CanvasProps) {
+export function P5Canvas({ visual, getAudioData, isPlaying, overlay }: P5CanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const p5Ref = useRef<p5 | null>(null);
   const visualRef = useRef(visual);
@@ -76,7 +77,7 @@ export function P5Canvas({ visual, getAudioData, isPlaying }: P5CanvasProps) {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <div ref={containerRef} className="p5-canvas" />;
+  return <div ref={containerRef} className={`p5-canvas ${overlay ? 'p5-canvas-overlay' : ''}`} />;
 }
 
 function renderShape(p: p5, shape: VisualShape, audioData: AudioData, shaderCache: Map<string, p5.Shader>): void {

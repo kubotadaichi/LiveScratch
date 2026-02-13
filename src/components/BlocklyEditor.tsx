@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import * as Blockly from 'blockly';
 import { registerAllBlocks } from '@/blocks';
-import { toolbox } from '@/blocks/toolbox';
+import { toolbox, buildToolbox } from '@/blocks/toolbox';
 import { workspaceToIR } from '@/blocks/generators/jsonGenerator';
 import type { LiveScratchIR } from '@/engine/types';
 
@@ -25,6 +25,7 @@ export interface BlocklyEditorHandle {
   saveWorkspace: () => Record<string, unknown>;
   loadWorkspace: (state: Record<string, unknown>) => void;
   clearWorkspace: () => void;
+  refreshToolbox: () => void;
 }
 
 interface BlocklyEditorProps {
@@ -32,6 +33,7 @@ interface BlocklyEditorProps {
   onBlockSelect?: (blockId: string | null) => void;
   onReady?: () => void;
   getTracksCustomCodeStatus?: () => Record<string, boolean>;
+  transparentBg?: boolean;
 }
 
 function createInitialTemplate(workspace: Blockly.WorkspaceSvg) {
@@ -99,7 +101,7 @@ function createInitialTemplate(workspace: Blockly.WorkspaceSvg) {
 }
 
 export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>(
-  function BlocklyEditor({ onIRChange, onBlockSelect, onReady, getTracksCustomCodeStatus = () => ({}) }, ref) {
+  function BlocklyEditor({ onIRChange, onBlockSelect, onReady, getTracksCustomCodeStatus = () => ({}), transparentBg }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
 
@@ -124,6 +126,10 @@ export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>
         workspaceRef.current.clear();
         createInitialTemplate(workspaceRef.current);
         handleWorkspaceChange();
+      },
+      refreshToolbox: () => {
+        if (!workspaceRef.current) return;
+        workspaceRef.current.updateToolbox(buildToolbox() as Blockly.utils.toolbox.ToolboxDefinition);
       },
     }));
 
@@ -202,6 +208,16 @@ export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>
       observer.observe(containerRef.current);
       return () => observer.disconnect();
     }, []);
+
+    // Toggle workspace background transparency for visual bg mode
+    useEffect(() => {
+      if (!workspaceRef.current) return;
+      const svg = workspaceRef.current.getParentSvg();
+      const bgRect = svg?.querySelector('.blocklyMainBackground') as SVGRectElement | null;
+      if (bgRect) {
+        bgRect.style.fill = transparentBg ? 'rgba(26, 26, 46, 0.3)' : '';
+      }
+    }, [transparentBg]);
 
     // Poll for custom code status and update block visuals
     useEffect(() => {

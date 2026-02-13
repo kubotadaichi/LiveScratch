@@ -15,6 +15,18 @@
   overflow: hidden;
 }
 
+.p5-canvas-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.panel-workspace .blockly-editor {
+  position: relative;
+  z-index: 1;
+}
+
 .panel-canvas {
   background: #000;
   overflow: hidden;
@@ -34,6 +46,12 @@
 .resize-handle:hover,
 .resize-handle[data-resize-handle-active] {
   background: var(--accent);
+}
+
+.resize-handle[data-panel-group-direction="vertical"] {
+  width: auto;
+  height: 4px;
+  cursor: row-resize;
 }
 
 /* Toolbar */
@@ -573,4 +591,58 @@
 .block-browser-item-actions {
   display: flex;
   gap: 4px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .toolbar {
+    padding: 0 8px;
+    gap: 8px;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: var(--toolbar-height);
+  }
+
+  .toolbar-center {
+    gap: 8px;
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    gap: 4px;
+  }
+
+  .play-btn {
+    min-width: 60px;
+    padding: 0.3em 0.6em;
+  }
+
+  .bpm-control label {
+    display: none;
+  }
+
+  .toolbar-project-title,
+  .toolbar-project-input {
+    max-width: 100px;
+    font-size: 0.8em;
+  }
+
+  .resize-handle {
+    height: 6px;
+    width: auto;
+  }
+
+  .dialog {
+    min-width: auto;
+    max-width: 90vw;
+    margin: 16px;
+  }
+
+  .dialog-wide {
+    min-width: auto;
+  }
+
+  .code-panel-editor .cm-editor {
+    font-size: 12px;
+  }
 }

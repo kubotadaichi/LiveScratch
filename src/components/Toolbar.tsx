@@ -19,6 +19,10 @@ interface ToolbarProps {
   onShare: () => void;
   onAuth: () => void;
   onSignOut: () => void;
+  visualBgMode?: boolean;
+  onToggleVisualBg?: () => void;
+  isMobile?: boolean;
+  onCustomBlocks?: () => void;
 }
 
 export function Toolbar({
@@ -38,6 +42,10 @@ export function Toolbar({
   onShare,
   onAuth,
   onSignOut,
+  visualBgMode,
+  onToggleVisualBg,
+  isMobile,
+  onCustomBlocks,
 }: ToolbarProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(projectTitle);
@@ -112,6 +120,13 @@ export function Toolbar({
             onChange={handleBPMChange}
           />
         </label>
+        <button
+          onClick={onToggleVisualBg}
+          title={visualBgMode ? 'Separate visual panel' : 'Visual as background'}
+          style={{ fontSize: '0.8em', opacity: visualBgMode ? 1 : 0.5 }}
+        >
+          BG
+        </button>
       </div>
       <div className="toolbar-right">
         {user ? (
@@ -119,8 +134,9 @@ export function Toolbar({
             <button onClick={onSave} disabled={saving}>
               {saving ? 'Saving...' : 'Save'}
             </button>
-            <button onClick={onOpen}>Open</button>
-            <button onClick={onShare}>Share</button>
+            {!isMobile && <button onClick={onOpen}>Open</button>}
+            {!isMobile && <button onClick={onShare}>Share</button>}
+            <button onClick={onCustomBlocks}>Blocks</button>
             <button onClick={onToggleCodePanel}>
               {showCodePanel ? 'Hide Code' : 'Show Code'}
             </button>
