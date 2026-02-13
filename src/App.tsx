@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { lazy, Suspense, useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Routes, Route } from 'react-router-dom';
 import { Toolbar } from '@/components/Toolbar';
 import { BlocklyEditor, type BlocklyEditorHandle } from '@/components/BlocklyEditor';
-import { P5Canvas } from '@/components/P5Canvas';
+const LazyP5Canvas = lazy(() => import('@/components/P5Canvas'));
 import { CodePanel } from '@/components/CodePanel';
 import { StatusBar } from '@/components/StatusBar';
 import { AuthDialog } from '@/components/AuthDialog';
@@ -242,11 +242,15 @@ function Editor() {
         onReady={() => setEditorReady(true)}
         getTracksCustomCodeStatus={getTracksCustomCodeStatus}
       />
-      <P5Canvas
-        visual={ir.visual}
-        getAudioData={getAudioData}
-        isPlaying={isPlaying}
-      />
+      {ir.visual && (
+        <Suspense fallback={null}>
+          <LazyP5Canvas
+            visual={ir.visual}
+            getAudioData={getAudioData}
+            isPlaying={isPlaying}
+          />
+        </Suspense>
+      )}
       {showCodePanel && (
         <CodePanel
           track={selectedTrack}

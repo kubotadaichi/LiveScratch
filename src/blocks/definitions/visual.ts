@@ -1,5 +1,6 @@
 import * as Blockly from 'blockly';
 import { FieldColour } from '@blockly/field-colour';
+import { FieldMultilineInput } from '@blockly/field-multilineinput';
 
 export function registerVisualBlocks(): void {
   // Canvas config block
@@ -169,6 +170,39 @@ export function registerVisualBlocks(): void {
       this.setOutput(true, 'Modulation');
       this.setColour(40);
       this.setTooltip('Modulate by beat energy');
+    },
+  };
+
+  // Shape: custom GLSL shader
+  Blockly.Blocks['visual_shader'] = {
+    init(this: Blockly.Block) {
+      this.appendDummyInput().appendField('shader');
+      this.appendDummyInput()
+        .appendField(
+          new FieldMultilineInput(
+            [
+              'precision mediump float;',
+              'uniform vec2 u_resolution;',
+              'uniform float u_time;',
+              'uniform float u_bass;',
+              'uniform float u_treble;',
+              'void main() {',
+              '  vec2 uv = gl_FragCoord.xy / u_resolution;',
+              '  float r = uv.x + u_bass * 0.3;',
+              '  float g = uv.y + u_treble * 0.3;',
+              '  float b = sin(u_time) * 0.5 + 0.5;',
+              '  gl_FragColor = vec4(r, g, b, 1.0);',
+              '}',
+            ].join('\n')
+          ),
+          'FRAG_CODE'
+        );
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(30);
+      this.setTooltip(
+        'Custom GLSL fragment shader. Uniforms: u_resolution, u_time, u_bass, u_treble'
+      );
     },
   };
 

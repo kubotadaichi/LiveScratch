@@ -210,6 +210,19 @@ function getVisualDefinition(
             strokeWeight: 0,
             modulations: [],
           });
+        } else if (block.type === 'visual_shader') {
+          shapes.push({
+            id: block.id,
+            type: 'shader',
+            x: 0,
+            y: 0,
+            size: 0,
+            fillColor: '#000000',
+            strokeColor: '#000000',
+            strokeWeight: 0,
+            modulations: [],
+            fragmentShader: block.getFieldValue('FRAG_CODE'),
+          });
         }
         block = block.getNextBlock();
       }

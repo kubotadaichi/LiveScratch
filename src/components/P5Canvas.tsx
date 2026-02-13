@@ -14,6 +14,7 @@ export function P5Canvas({ visual, getAudioData, isPlaying }: P5CanvasProps) {
   const p5Ref = useRef<p5 | null>(null);
   const visualRef = useRef(visual);
   const isPlayingRef = useRef(isPlaying);
+  const shaderCacheRef = useRef(new Map<string, p5.Shader>());
 
   // Keep refs in sync
   visualRef.current = visual;
@@ -25,7 +26,7 @@ export function P5Canvas({ visual, getAudioData, isPlaying }: P5CanvasProps) {
     const sketch = (p: p5) => {
       p.setup = () => {
         const parent = containerRef.current!;
-        p.createCanvas(parent.clientWidth, parent.clientHeight);
+        p.createCanvas(parent.clientWidth, parent.clientHeight, p.WEBGL);
         p.colorMode(p.HSB, 360, 100, 100, 100);
       };
 
@@ -47,9 +48,12 @@ export function P5Canvas({ visual, getAudioData, isPlaying }: P5CanvasProps) {
         const audioData = getAudioData();
         if (!audioData) return;
 
+        // In WEBGL mode, origin is at center. Shift to top-left for 2D shapes.
+        p.translate(-p.width / 2, -p.height / 2);
+
         // Render each shape
         for (const shape of vis.shapes) {
-          renderShape(p, shape, audioData);
+          renderShape(p, shape, audioData, shaderCacheRef.current);
         }
       };
 
@@ -72,7 +76,7 @@ export function P5Canvas({ visual, getAudioData, isPlaying }: P5CanvasProps) {
   return <div ref={containerRef} className="p5-canvas" />;
 }
 
-function renderShape(p: p5, shape: VisualShape, audioData: AudioData): void {
+function renderShape(p: p5, shape: VisualShape, audioData: AudioData, shaderCache: Map<string, p5.Shader>): void {
   // Evaluate modulations
   let x = (shape.x * p.width) / 100; // percentage-based
   let y = (shape.y * p.height) / 100;
@@ -121,6 +125,9 @@ function renderShape(p: p5, shape: VisualShape, audioData: AudioData): void {
       break;
     case 'spectrum':
       drawSpectrum(p, audioData.frequency, shape);
+      break;
+    case 'shader':
+      renderShader(p, shape, audioData, shaderCache);
       break;
   }
 }
@@ -193,3 +200,62 @@ function drawSpectrum(
     p.rect(i * barWidth, p.height - h, barWidth, h);
   }
 }
+
+const DEFAULT_VERT = `
+attribute vec3 aPosition;
+void main() {
+  vec4 pos = vec4(aPosition, 1.0);
+  pos.xy = pos.xy * 2.0 - 1.0;
+  gl_Position = pos;
+}
+`;
+
+function renderShader(
+  p: p5,
+  shape: VisualShape,
+  audioData: AudioData,
+  shaderCache: Map<string, p5.Shader>
+): void {
+  if (!shape.fragmentShader) return;
+
+  let shader = shaderCache.get(shape.id);
+  if (!shader) {
+    try {
+      shader = p.createShader(DEFAULT_VERT, shape.fragmentShader);
+      shaderCache.set(shape.id, shader);
+    } catch (e) {
+      console.error('Shader compilation error:', e);
+      return;
+    }
+  }
+
+  p.push();
+  // Reset translation so shader covers full canvas
+  p.resetMatrix();
+  p.shader(shader);
+  shader.setUniform('u_resolution', [p.width, p.height]);
+  shader.setUniform('u_time', p.millis() / 1000.0);
+
+  // Audio uniforms
+  let bass = 0;
+  let treble = 0;
+  for (let i = 0; i < 4 && i < audioData.frequency.length; i++) {
+    bass += audioData.frequency[i];
+  }
+  bass = bass / 4 / 255;
+  const mid = Math.floor(audioData.frequency.length / 2);
+  for (let i = mid; i < audioData.frequency.length; i++) {
+    treble += audioData.frequency[i];
+  }
+  treble = treble / (audioData.frequency.length - mid) / 255;
+
+  shader.setUniform('u_bass', bass);
+  shader.setUniform('u_treble', treble);
+
+  p.noStroke();
+  p.rect(0, 0, p.width, p.height);
+  p.resetShader();
+  p.pop();
+}
+
+export default P5Canvas;

@@ -8,6 +8,7 @@ export class TrackManager {
   private effectChain: EffectChain | null = null;
   private trackId: string;
   private _customCodeApplied: boolean = false;
+  private userNodes: Tone.ToneAudioNode[] = [];
 
   constructor(track: Track) {
     this.trackId = track.id;
@@ -114,14 +115,38 @@ export class TrackManager {
     this.dispose();
 
     try {
-      // Execute custom code in a function scope with Tone and the track object available
+      // Create a proxy that tracks nodes the user creates
+      const trackManager = this;
+      const toneProxy = new Proxy(Tone, {
+        get(target, prop, receiver) {
+          const value = Reflect.get(target, prop, receiver);
+          // If it's a constructor (starts with uppercase, is a function), wrap it
+          if (
+            typeof prop === 'string' &&
+            typeof value === 'function' &&
+            prop[0] === prop[0].toUpperCase()
+          ) {
+            return new Proxy(value, {
+              construct(Target, args) {
+                const instance = new Target(...args);
+                // Track anything that looks like an audio node
+                if (instance && typeof instance.dispose === 'function') {
+                  trackManager.userNodes.push(instance);
+                }
+                return instance;
+              },
+            });
+          }
+          return value;
+        },
+      });
+
       const customFunction = new Function('Tone', 'track', code);
-      customFunction(Tone, this); // 'this' refers to the TrackManager instance
+      customFunction(toneProxy, this);
       this.setCustomCodeApplied(true);
       console.log(`Custom code applied to track ${this.id}`);
     } catch (error) {
       console.error(`Error applying custom code to track ${this.id}:`, error);
-      // Potentially revert or at least leave the track in a silent, stable state
     }
   }
 
@@ -136,5 +161,16 @@ export class TrackManager {
       this.source.dispose();
       this.source = null;
     }
+    // Clean up any nodes created by custom code
+    for (const node of this.userNodes) {
+      try {
+        (node as any).stop?.();
+        (node as any).disconnect?.();
+        node.dispose();
+      } catch {
+        // Node may already be disposed
+      }
+    }
+    this.userNodes = [];
   }
 }

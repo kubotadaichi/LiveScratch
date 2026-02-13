@@ -62,7 +62,7 @@ export interface Track {
 
 // === Visual Types ===
 
-export type ShapeType = 'circle' | 'rect' | 'waveform' | 'spectrum';
+export type ShapeType = 'circle' | 'rect' | 'waveform' | 'spectrum' | 'shader';
 export type ModulationSource = 'freq' | 'waveform' | 'beat' | 'time';
 
 export interface Modulation {
@@ -83,7 +83,7 @@ export interface VisualShape {
   strokeColor: string;
   strokeWeight: number;
   modulations: Modulation[];
-  customCode?: string;
+  fragmentShader?: string;
 }
 
 export interface VisualConfig {

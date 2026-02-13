@@ -50,10 +50,83 @@ export const toolbox = {
         { kind: 'block', type: 'visual_rect' },
         { kind: 'block', type: 'visual_waveform' },
         { kind: 'block', type: 'visual_spectrum' },
+        { kind: 'block', type: 'visual_shader' },
         { kind: 'block', type: 'mod_freq' },
         { kind: 'block', type: 'mod_waveform' },
         { kind: 'block', type: 'mod_beat' },
         { kind: 'block', type: 'mod_time' },
+        {
+          kind: 'label',
+          text: '── Presets ──',
+        },
+        {
+          kind: 'block',
+          type: 'canvas_config',
+          fields: { BG_COLOR: '#000000', FADE: 0.1 },
+          inputs: {
+            SHAPES: {
+              block: {
+                type: 'visual_circle',
+                fields: { X: 50, Y: 50, SIZE: 100, FILL: '#ff00ff', STROKE: '#ffffff', STROKE_WEIGHT: 0 },
+                inputs: {
+                  MODULATIONS: {
+                    block: {
+                      type: 'mod_beat',
+                      fields: { PROPERTY: 'size', SCALE: 200 },
+                    },
+                  },
+                },
+                next: {
+                  block: {
+                    type: 'visual_waveform',
+                    fields: { COLOR: '#00ff00', STROKE_WEIGHT: 2 },
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          kind: 'block',
+          type: 'canvas_config',
+          fields: { BG_COLOR: '#0a0a2e', FADE: 0.95 },
+          inputs: {
+            SHAPES: {
+              block: {
+                type: 'visual_circle',
+                fields: { X: 50, Y: 50, SIZE: 50, FILL: '#00ffff', STROKE: '#00ffff', STROKE_WEIGHT: 2 },
+                inputs: {
+                  MODULATIONS: {
+                    block: {
+                      type: 'mod_freq',
+                      fields: { PROPERTY: 'size', SCALE: 300, RANGE_LO: 0, RANGE_HI: 10 },
+                      inputs: {
+                        NEXT_MOD: {
+                          block: {
+                            type: 'mod_time',
+                            fields: { PROPERTY: 'hue', SCALE: 360 },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          kind: 'block',
+          type: 'canvas_config',
+          fields: { BG_COLOR: '#000000', FADE: 0 },
+          inputs: {
+            SHAPES: {
+              block: {
+                type: 'visual_spectrum',
+              },
+            },
+          },
+        },
       ],
     },
   ],

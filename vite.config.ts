@@ -15,7 +15,6 @@ export default defineConfig({
         manualChunks: {
           blockly: ['blockly', '@blockly/field-colour'],
           tone: ['tone'],
-          p5: ['p5'],
         },
       },
     },
