@@ -57,17 +57,20 @@ export function P5Canvas({ visual, getAudioData, isPlaying }: P5CanvasProps) {
         }
       };
 
-      p.windowResized = () => {
-        const parent = containerRef.current;
-        if (parent) {
-          p.resizeCanvas(parent.clientWidth, parent.clientHeight);
-        }
-      };
     };
 
     p5Ref.current = new p5(sketch, containerRef.current);
 
+    const container = containerRef.current;
+    const observer = new ResizeObserver(() => {
+      if (p5Ref.current && container) {
+        p5Ref.current.resizeCanvas(container.clientWidth, container.clientHeight);
+      }
+    });
+    observer.observe(container);
+
     return () => {
+      observer.disconnect();
       p5Ref.current?.remove();
       p5Ref.current = null;
     };

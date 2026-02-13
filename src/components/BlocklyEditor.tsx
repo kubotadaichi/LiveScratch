@@ -30,7 +30,6 @@ export interface BlocklyEditorHandle {
 interface BlocklyEditorProps {
   onIRChange: (ir: LiveScratchIR) => void;
   onBlockSelect?: (blockId: string | null) => void;
-  resizeTrigger?: unknown;
   onReady?: () => void;
   getTracksCustomCodeStatus?: () => Record<string, boolean>;
 }
@@ -100,7 +99,7 @@ function createInitialTemplate(workspace: Blockly.WorkspaceSvg) {
 }
 
 export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>(
-  function BlocklyEditor({ onIRChange, onBlockSelect, resizeTrigger, onReady, getTracksCustomCodeStatus = () => ({}) }, ref) {
+  function BlocklyEditor({ onIRChange, onBlockSelect, onReady, getTracksCustomCodeStatus = () => ({}) }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
 
@@ -192,20 +191,17 @@ export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>
       };
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Handle resize (window + layout changes like code panel toggle)
+    // Handle resize via ResizeObserver (responds to panel drag + window resize)
     useEffect(() => {
-      const handleResize = () => {
+      if (!containerRef.current) return;
+      const observer = new ResizeObserver(() => {
         if (workspaceRef.current) {
           Blockly.svgResize(workspaceRef.current);
         }
-      };
-      window.addEventListener('resize', handleResize);
-      const timer = setTimeout(handleResize, 50);
-      return () => {
-        window.removeEventListener('resize', handleResize);
-        clearTimeout(timer);
-      };
-    }, [resizeTrigger]);
+      });
+      observer.observe(containerRef.current);
+      return () => observer.disconnect();
+    }, []);
 
     // Poll for custom code status and update block visuals
     useEffect(() => {

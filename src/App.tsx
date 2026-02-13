@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Routes, Route } from 'react-router-dom';
+import { Panel, Group, Separator } from 'react-resizable-panels';
 import { Toolbar } from '@/components/Toolbar';
 import { BlocklyEditor, type BlocklyEditorHandle } from '@/components/BlocklyEditor';
 const LazyP5Canvas = lazy(() => import('@/components/P5Canvas'));
@@ -215,7 +216,7 @@ function Editor() {
   if (authLoading) return null;
 
   return (
-    <div className={`app ${showCodePanel ? '' : 'code-panel-hidden'}`}>
+    <div className="app">
       <Toolbar
         isPlaying={isPlaying}
         bpm={bpm}
@@ -234,30 +235,41 @@ function Editor() {
         onAuth={handleAuth}
         onSignOut={signOut}
       />
-      <BlocklyEditor
-        ref={editorRef}
-        onIRChange={handleIRChange}
-        onBlockSelect={setSelectedBlockId}
-        resizeTrigger={showCodePanel}
-        onReady={() => setEditorReady(true)}
-        getTracksCustomCodeStatus={getTracksCustomCodeStatus}
-      />
-      {ir.visual && (
-        <Suspense fallback={null}>
-          <LazyP5Canvas
-            visual={ir.visual}
-            getAudioData={getAudioData}
-            isPlaying={isPlaying}
+      <Group orientation="horizontal" id="live-scratch-panels" className="panel-group">
+        <Panel defaultSize="40%" minSize="20%" className="panel-workspace" id="workspace">
+          <BlocklyEditor
+            ref={editorRef}
+            onIRChange={handleIRChange}
+            onBlockSelect={setSelectedBlockId}
+            onReady={() => setEditorReady(true)}
+            getTracksCustomCodeStatus={getTracksCustomCodeStatus}
           />
-        </Suspense>
-      )}
-      {showCodePanel && (
-        <CodePanel
-          track={selectedTrack}
-          applyCustomCode={applyCustomCodeToTrack}
-          onReset={handleResetCode}
-        />
-      )}
+        </Panel>
+        <Separator className="resize-handle" />
+        <Panel defaultSize={showCodePanel ? '40%' : '60%'} minSize="15%" className="panel-canvas" id="canvas">
+          {ir.visual && (
+            <Suspense fallback={null}>
+              <LazyP5Canvas
+                visual={ir.visual}
+                getAudioData={getAudioData}
+                isPlaying={isPlaying}
+              />
+            </Suspense>
+          )}
+        </Panel>
+        {showCodePanel && (
+          <>
+            <Separator className="resize-handle" />
+            <Panel defaultSize="20%" minSize="15%" className="panel-code" id="codepanel">
+              <CodePanel
+                track={selectedTrack}
+                applyCustomCode={applyCustomCodeToTrack}
+                onReset={handleResetCode}
+              />
+            </Panel>
+          </>
+        )}
+      </Group>
       <StatusBar
         isPlaying={isPlaying}
         bpm={bpm}
