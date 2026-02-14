@@ -42,8 +42,8 @@ export function Toolbar({
   onShare,
   onAuth,
   onSignOut,
-  visualBgMode: _visualBgMode,
-  onToggleVisualBg: _onToggleVisualBg,
+  visualBgMode,
+  onToggleVisualBg,
   isMobile,
   onCustomBlocks,
 }: ToolbarProps) {
@@ -120,7 +120,13 @@ export function Toolbar({
             onChange={handleBPMChange}
           />
         </label>
-        {/* TODO: Visual bg mode needs browser debugging — disabled for now */}
+        <button
+          onClick={onToggleVisualBg}
+          title={visualBgMode ? 'Separate visual panel' : 'Visual as background'}
+          style={{ fontSize: '0.8em', opacity: visualBgMode ? 1 : 0.5 }}
+        >
+          BG
+        </button>
       </div>
       <div className="toolbar-right">
         {user ? (

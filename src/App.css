@@ -32,6 +32,23 @@
   z-index: 1;
 }
 
+/* Visual bg mode: make Blockly workspace transparent so p5 canvas shows through */
+.blockly-editor.transparent {
+  background: transparent !important;
+}
+
+.blockly-editor.transparent .injectionDiv {
+  background: transparent !important;
+}
+
+.blockly-editor.transparent .blocklyMainBackground {
+  fill: rgba(26, 26, 46, 0.3) !important;
+}
+
+.blockly-editor.transparent svg.blocklySvg {
+  background: transparent !important;
+}
+
 .panel-canvas {
   background: #000;
   overflow: hidden;
