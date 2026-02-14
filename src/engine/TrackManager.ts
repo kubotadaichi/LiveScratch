@@ -53,7 +53,7 @@ export class TrackManager {
       case 'snare':
         return new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.001, decay: 0.2, sustain: 0 } });
       case 'hihat':
-        return new Tone.MetalSynth({ frequency: 400, envelope: { attack: 0.001, decay: 0.1, release: 0.01 }, harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5 });
+        return new Tone.MetalSynth({ envelope: { attack: 0.001, decay: 0.1, release: 0.01 }, harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5 });
       case 'clap':
         return new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.001, decay: 0.3, sustain: 0 } });
       default:
@@ -89,7 +89,7 @@ export class TrackManager {
     }
   }
 
-  private triggerSource(source: Tone.ToneAudioNode, sourceType: Source, time: number, pitch?: string): void {
+  private triggerSource(source: Tone.ToneAudioNode, _sourceType: Source, time: number, pitch?: string): void {
     if (source instanceof Tone.NoiseSynth) {
       source.triggerAttackRelease('8n', time);
     } else if (source instanceof Tone.MetalSynth) {

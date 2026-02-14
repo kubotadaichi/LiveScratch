@@ -23,6 +23,7 @@ export interface Database {
           workspace?: Record<string, unknown>;
           updated_at?: string;
         };
+        Relationships: [];
       };
       custom_blocks: {
         Row: {
@@ -61,7 +62,12 @@ export interface Database {
           is_public?: boolean;
           updated_at?: string;
         };
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 }

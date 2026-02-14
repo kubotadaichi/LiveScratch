@@ -22,8 +22,8 @@ export class AudioAnalyser {
   }
 
   getData(): AudioData {
-    this.analyser.getByteFrequencyData(this.freqData);
-    this.analyser.getByteTimeDomainData(this.waveData);
+    this.analyser.getByteFrequencyData(this.freqData as Uint8Array<ArrayBuffer>);
+    this.analyser.getByteTimeDomainData(this.waveData as Uint8Array<ArrayBuffer>);
     return { frequency: this.freqData, waveform: this.waveData };
   }
 

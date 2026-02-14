@@ -6,6 +6,7 @@ import { workspaceToIR } from '@/blocks/generators/jsonGenerator';
 import type { LiveScratchIR } from '@/engine/types';
 
 const darkTheme = Blockly.Theme.defineTheme('live-scratch-dark', {
+  name: 'live-scratch-dark',
   base: Blockly.Themes.Classic,
   componentStyles: {
     workspaceBackgroundColour: '#1a1a2e',
@@ -101,7 +102,7 @@ function createInitialTemplate(workspace: Blockly.WorkspaceSvg) {
 }
 
 export const BlocklyEditor = forwardRef<BlocklyEditorHandle, BlocklyEditorProps>(
-  function BlocklyEditor({ onIRChange, onBlockSelect, onReady, getTracksCustomCodeStatus = () => ({}), transparentBg }, ref) {
+  function BlocklyEditor({ onIRChange, onBlockSelect, onReady, getTracksCustomCodeStatus = (() => ({})) as () => Record<string, boolean>, transparentBg }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
 

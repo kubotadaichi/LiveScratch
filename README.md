@@ -1,73 +1,149 @@
-# React + TypeScript + Vite
+# Live Scratch
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Scratchライクなブロック操作でAV（Audio/Visual）ライブコーディングができるWebアプリケーション。
 
-Currently, two official plugins are available:
+**https://live-scratch.vercel.app/**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## コンセプト
 
-## React Compiler
+- **初心者向け** — ブロックを組み合わせるだけでライブコーディングを体験できる
+- **上級者向け** — ブロック内部のTone.jsコードを直接編集してカスタマイズできる
+- **ブラウザ完結** — インストール不要、Webブラウザからすぐにアクセス可能
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 画面構成
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+┌──────────────────────────────────────────────┐
+│  Toolbar  [ ▶ Play ] [ ■ Stop ] [BPM: 120]  │
+├──────────────┬───────────────┬───────────────┤
+│              │               │               │
+│   Blockly    │   p5.js       │  Code Panel   │
+│   Editor     │   Canvas      │  (CodeMirror) │
+│              │               │               │
+├──────────────┴───────────────┴───────────────┤
+│  Status Bar                                  │
+└──────────────────────────────────────────────┘
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+パネルはドラッグでリサイズ可能。モバイルでは縦方向レイアウトに自動切り替え。
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 機能
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### ブロックエディタ
+
+Blocklyベースのビジュアルプログラミング環境。4カテゴリのブロックを組み合わせて音楽とビジュアルを構築する。
+
+**Source（音源）**
+- `synth` — シンセサイザー（sine / square / sawtooth / triangle）
+- `sampler` — プリセットサンプル（kick / snare / hihat / clap）
+
+**Pattern（パターン）**
+- `beat` — ステップシーケンサー（例: `x---x---`）
+- `note` — 単音ループ（例: C4）
+- `sequence` — メロディシーケンス（例: C4, E4, G4, E4）
+
+**Effect（エフェクト）**
+- `reverb` / `delay` / `filter` / `distortion`
+- ブロックを繋げてエフェクトチェーンを構築
+
+**Control（制御）**
+- `bpm` — テンポ設定
+- `loop` — ループ制御
+
+### オーディオリアクティブビジュアル
+
+p5.jsキャンバスでリアルタイムに音に反応するビジュアルを描画。
+
+- **図形**: Circle, Rectangle（位置・サイズ・色を指定）
+- **波形/スペクトラム表示**: Waveform, Spectrum
+- **カスタムシェーダー**: GLSLフラグメントシェーダー（u_resolution, u_time, u_bass, u_treble）
+- **モジュレーション**: 周波数帯域 / 振幅 / ビート検出 / 時間ベースの変調を図形プロパティにマッピング
+
+### コード編集モード
+
+CodeMirrorエディタで、ブロックから生成されたTone.jsコードを直接編集可能。
+
+- トラックブロックを選択してCode Panelを開く
+- 編集済みトラックにはカスタムコードバッジを表示
+- ブロック変更時にカスタムコード上書きの確認あり
+- リセットで元のブロック定義に復元
+
+### カスタムブロック
+
+ユーザー独自のブロックを作成・共有できるシステム。
+
+- ブロック定義（入出力・フィールド）とジェネレータコードを設定
+- コミュニティに公開してブロックを共有
+- Block Browserから他ユーザーのブロックをインストール
+
+### プロジェクト管理
+
+- Google / GitHub OAuth認証
+- プロジェクトの保存・読み込み・削除
+- URLによるプロジェクト共有（`/p/:id`）
+
+## 技術スタック
+
+| レイヤー | 技術 |
+|---------|------|
+| UI | React 19 + TypeScript |
+| ブロックエディタ | Blockly |
+| 音声エンジン | Tone.js (Web Audio API) |
+| ビジュアル | p5.js (WebGL) |
+| コードエディタ | CodeMirror 6 |
+| 認証・DB | Supabase |
+| ビルド | Vite |
+| ホスティング | Vercel |
+
+## アーキテクチャ
+
 ```
+Blockly Editor
+    ↓  ブロック → JSON中間表現 (IR) に変換
+Audio Engine (Tone.js Transport)
+    ↓  IR を解釈してビート同期再生
+p5.js Canvas
+    ↓  オーディオデータを取得してビジュアル描画
+```
+
+BPM変更は即座に反映。ブロックの追加・変更・削除は差分検出後にスケジュール更新。
+
+## ローカル開発
+
+### 前提条件
+
+- Node.js 20+
+- npm
+
+### セットアップ
+
+```bash
+git clone https://github.com/kubotadaichi/LiveScratch.git
+cd LiveScratch
+npm install
+```
+
+### 環境変数
+
+`.env.local` を作成:
+
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 開発サーバー起動
+
+```bash
+npm run dev
+```
+
+### ビルド
+
+```bash
+npm run build
+```
+
+## ライセンス
+
+MIT
